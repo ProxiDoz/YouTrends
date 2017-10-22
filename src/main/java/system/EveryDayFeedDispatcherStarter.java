@@ -9,8 +9,8 @@ public class EveryDayFeedDispatcherStarter
 {
     private static final int DISPATCHER_PERIOD = 1; // Days
 
-    private static final int DISPATCHER_HOUR = 21;
-    private static final int DISPATCHER_MINUTES = 39;
+    private static final int DISPATCHER_HOUR = 20;
+    private static final int DISPATCHER_MINUTES = 00;
     private static final int DISPATCHER_SECONDS = 0;
 
     private Telegram telegram;
