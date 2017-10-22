@@ -1,3 +1,5 @@
 .idea
 YouTrends.iml
 target
+src/main/resources/jdbc.properties
+src/main/resources/settings.properties
