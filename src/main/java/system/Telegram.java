@@ -26,9 +26,12 @@ public class Telegram
     Telegram(Settings settings)
     {
         bot = new TelegramBot(settings.getBotToken());
+        MyLogger.logInfo("Bot init");
 
         GetUpdates getUpdates = new GetUpdates();
         GetUpdatesResponse response = bot.execute(getUpdates);
+
+        MyLogger.logInfo("Init updates: " + response.updates().size());
 
         if (response.updates().size() > 0)
         {
