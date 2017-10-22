@@ -1,0 +1,27 @@
+package system;
+
+public class User
+{
+    private String chatId;
+    private boolean isBanned;
+
+    public String getChatId()
+    {
+        return chatId;
+    }
+
+    public void setChatId(String chatId)
+    {
+        this.chatId = chatId;
+    }
+
+    public boolean isBanned()
+    {
+        return isBanned;
+    }
+
+    public void setBanned(boolean banned)
+    {
+        isBanned = banned;
+    }
+}
