@@ -32,7 +32,7 @@ public class BannedChannelDAO
     {
         List<String> bannedChannels = new ArrayList<>();
 
-        String query = "SELECT * FROM bannedchannel";
+        String query = "SELECT * FROM BannedChannel";
 
         try
         {

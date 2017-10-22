@@ -36,7 +36,7 @@ public class UserDAO
 
     public void insertUser(User user)
     {
-        String insertQuery = "INSERT INTO user (chatId) VALUES (?)";
+        String insertQuery = "INSERT INTO User (chatId) VALUES (?)";
 
         try
         {
@@ -58,7 +58,7 @@ public class UserDAO
     {
         List<User> users = new ArrayList<>();
 
-        String query = "SELECT * FROM user";
+        String query = "SELECT * FROM User";
 
         try
         {

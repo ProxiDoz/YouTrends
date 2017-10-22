@@ -18,7 +18,7 @@ public class FeedDAO
 
     public long insertFeed(Feed feed)
     {
-        String insertQuery = "INSERT INTO feed (dateCollect) VALUES (?)";
+        String insertQuery = "INSERT INTO Feed (dateCollect) VALUES (?)";
 
         String getIdQuery = "SELECT LAST_INSERT_ID()";
 

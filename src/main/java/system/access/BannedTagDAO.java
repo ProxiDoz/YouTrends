@@ -32,7 +32,7 @@ public class BannedTagDAO
     {
         List<String> bannedTags = new ArrayList<>();
 
-        String query = "SELECT * FROM bannedtag";
+        String query = "SELECT * FROM BannedTag";
 
         try
         {

@@ -19,7 +19,7 @@ public class VideoDAO
 
     public void insertVideos(List<Video> videos, long feedId)
     {
-        String insertQuery = "INSERT INTO video (feedId, name, description, channel, videoId, imageUrl) " +
+        String insertQuery = "INSERT INTO Video (feedId, name, description, channel, videoId, imageUrl) " +
                              "VALUES (?,?,?,?,?,?)";
 
         try
