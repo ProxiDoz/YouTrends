@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.base.CharMatcher;
-import com.sun.media.jfxmedia.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -108,10 +107,8 @@ public class YouTubeParser implements Callable<Feed>
         }
         catch (Exception e)
         {
-            Logger.logMsg(Logger.ERROR, "Ошибка парсинга");
-
+            MyLogger.logErr("Ошибка парсинга");
             e.printStackTrace();
-
             return null;
         }
     }

@@ -14,7 +14,6 @@ import com.pengrad.telegrambot.request.GetUpdates;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.request.SendPhoto;
 import com.pengrad.telegrambot.response.GetUpdatesResponse;
-import com.sun.media.jfxmedia.logging.Logger;
 import system.access.UserDAO;
 
 public class Telegram
@@ -100,7 +99,7 @@ public class Telegram
         }
         catch (Exception e)
         {
-            Logger.logMsg(Logger.ERROR, "Ошибка отправки Feed");
+            MyLogger.logErr("Ошибка отправки Feed");
             e.printStackTrace();
         }
     }
