@@ -43,6 +43,8 @@ public class Telegram
 
                          if (response1.updates().size() > 0)
                          {
+                             MyLogger.logInfo("Have updates: " + response1.updates().size());
+
                              lastMessageId = response1.updates().get(response1.updates().size() - 1).updateId() + 1;
 
                              for (Update update : updates)
@@ -50,11 +52,15 @@ public class Telegram
                                  Message message = update.message();
                                  String text = message.text();
 
+                                 MyLogger.logInfo("text: " + text);
+
                                  if (text != null)
                                  {
                                      if (text.equalsIgnoreCase("Получать тренды"))
                                      {
                                          String chatId = message.from().id().toString();
+
+                                         MyLogger.logWarn("Subscribe. user: " + chatId);
 
                                          User user = new User();
                                          user.setChatId(chatId);

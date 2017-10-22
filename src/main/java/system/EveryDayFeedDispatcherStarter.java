@@ -13,8 +13,6 @@ public class EveryDayFeedDispatcherStarter
     private static final int DISPATCHER_MINUTES = 00;
     private static final int DISPATCHER_SECONDS = 0;
 
-    private Telegram telegram;
-
     public EveryDayFeedDispatcherStarter(Telegram telegram)
     {
         try
