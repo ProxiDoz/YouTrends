@@ -35,7 +35,7 @@ public class UserDAO
      */
     public boolean insertUser(User user)
     {
-        String insertQuery = "INSERT INTO User (chatId, isSubscuribe) VALUES (?, 0)";
+        String insertQuery = "INSERT INTO User (chatId, isSubscribe) VALUES (?, 0)";
 
         try
         {
@@ -58,7 +58,7 @@ public class UserDAO
 
     public void subscribeUser(User user)
     {
-        String updateQuery = "UPDATE User SET isSubscuribe = 1 WHERE chatId = ?";
+        String updateQuery = "UPDATE User SET isSubscribe = 1 WHERE chatId = ?";
 
         try
         {
@@ -75,7 +75,7 @@ public class UserDAO
 
     public void unsubscribeUser(User user)
     {
-        String updateQuery = "UPDATE User SET isSubscuribe = 0 WHERE chatId = ?";
+        String updateQuery = "UPDATE User SET isSubscribe = 0 WHERE chatId = ?";
 
         try
         {
@@ -94,7 +94,7 @@ public class UserDAO
     {
         List<User> users = new ArrayList<>();
 
-        String query = "SELECT * FROM User WHERE isSubscuribe = 1";
+        String query = "SELECT * FROM User WHERE isSubscribe = 1";
 
         try
         {
