@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.telegram.telegrambots.TelegramBotsApi;
+
 public class EveryDayFeedDispatcherStarter
 {
     private static final int DISPATCHER_PERIOD = 1; // Days
@@ -17,6 +19,14 @@ public class EveryDayFeedDispatcherStarter
     {
         try
         {
+            TelegramBotsApi botsApi = new TelegramBotsApi();
+
+            try {
+                botsApi.registerBot(telegram);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             MyLogger.logInfo("EveryDayFeedDispatcher Start");
             // Берём сегодняшний день и задаем время рассылки
             Date date = new Date();

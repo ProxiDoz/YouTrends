@@ -4,7 +4,7 @@ import java.awt.image.BufferedImage;
 
 public class Video
 {
-    /* Id видосека - можно использовать для получения ссылки для просмотра видео */
+    // id use for creating video URL
     private String id;
     private String name;
     private String description;
@@ -13,21 +13,8 @@ public class Video
     private String old;
     private long viewCount;
     private BufferedImage image;
-
-    @Override
-    public String toString()
-    {
-        return "Video{" +
-               "id='" + id + '\'' +
-               ", name='" + name + '\'' +
-               ", description='" + description + '\'' +
-               ", channel='" + channel + '\'' +
-               ", imgUrl='" + imgUrl + '\'' +
-               ", old='" + old + '\'' +
-               ", viewCount='" + viewCount + '\'' +
-               ", image=" + image +
-               '}';
-    }
+    // FileId - need for incremental send photo without downloading photo again.
+    private String fileId;
 
     public Video(String id, String name, String imgUrl)
     {
@@ -114,5 +101,15 @@ public class Video
     public void setViewCount(long viewCount)
     {
         this.viewCount = viewCount;
+    }
+
+    public String getFileId()
+    {
+        return fileId;
+    }
+
+    public void setFileId(String fileId)
+    {
+        this.fileId = fileId;
     }
 }

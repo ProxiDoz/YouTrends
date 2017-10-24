@@ -42,6 +42,7 @@
     <bean class="system.YouTubeParser"/>
 
     <bean id="settings" class="system.Settings">
+        <constructor-arg name="botName" value="${botName}"/>
         <constructor-arg name="botToken" value="${botToken}"/>
     </bean>
 

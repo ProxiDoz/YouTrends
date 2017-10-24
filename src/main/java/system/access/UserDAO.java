@@ -30,39 +30,43 @@ public class UserDAO
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    /**
-     * @return - true - new user was inserted. false - user was exist.
-     */
-    public boolean insertUser(User user)
+    public void registerUserIfNotExist(User user)
     {
-        String insertQuery = "INSERT INTO User (chatId, isSubscribe) VALUES (?, 0)";
+        String insertQuery = "INSERT INTO User (id, firstName, lastName, userName, language, isBot) " +
+                             "VALUES (?, ?, ?, ?, ?, ?)" +
+                             "ON DUPLICATE KEY UPDATE " +
+                             "firstName = VALUES(firstName)," +
+                             "lastName = VALUES(lastName)," +
+                             "userName = VALUES(userName)," +
+                             "language = VALUES(language)," +
+                             "isBot = VALUES(isBot)";
 
         try
         {
-            jdbcTemplate.update(insertQuery, user.getChatId());
-        }
-        catch (DuplicateKeyException e)
-        {
-            return false;
+            jdbcTemplate.update(insertQuery,
+                                user.getId(),
+                                user.getFirstName(),
+                                user.getLastName(),
+                                user.getUserName(),
+                                user.getLanguageCode(),
+                                user.getBot());
         }
         catch (Exception e)
         {
-            MyLogger.logErr("insertUser error");
+            MyLogger.logErr("registerUserIfNotExist error");
             e.printStackTrace();
-            return false;
         }
 
-        MyLogger.logWarn("New user: " + user.getChatId());
-        return true;
+        MyLogger.logWarn("New user: " + user.getId() + " " + user.getFirstName());
     }
 
     public void subscribeUser(User user)
     {
-        String updateQuery = "UPDATE User SET isSubscribe = 1 WHERE chatId = ?";
+        String updateQuery = "UPDATE User SET isSubscribe = 1 WHERE id = ?";
 
         try
         {
-            jdbcTemplate.update(updateQuery, user.getChatId());
+            jdbcTemplate.update(updateQuery, user.getId().toString());
         }
         catch (Exception e)
         {
@@ -70,16 +74,16 @@ public class UserDAO
             e.printStackTrace();
         }
 
-        MyLogger.logWarn("Subscribe. User: " + user.getChatId());
+        MyLogger.logWarn("Subscribe. User: " + user.getId().toString());
     }
 
     public void unsubscribeUser(User user)
     {
-        String updateQuery = "UPDATE User SET isSubscribe = 0 WHERE chatId = ?";
+        String updateQuery = "UPDATE User SET isSubscribe = 0 WHERE id = ?";
 
         try
         {
-            jdbcTemplate.update(updateQuery, user.getChatId());
+            jdbcTemplate.update(updateQuery, user.getId().toString());
         }
         catch (Exception e)
         {
@@ -87,10 +91,10 @@ public class UserDAO
             e.printStackTrace();
         }
 
-        MyLogger.logWarn("Unubscribe. User: " + user.getChatId());
+        MyLogger.logWarn("Unubscribe. User: " + user.getId().toString());
     }
 
-    public List<User> getSubscribedUsers()
+    public List<User> getSubscribeUsers()
     {
         List<User> users = new ArrayList<>();
 
@@ -101,9 +105,16 @@ public class UserDAO
             jdbcTemplate.query(query, result ->
             {
                 User user = new User();
-                user.setChatId(result.getString("chatId"));
+
+                user.setId(result.getInt("id"));
+                user.setFirstName(result.getString("firstName"));
+                user.setLastName(result.getString("lastName"));
+                user.setUserName(result.getString("userName"));
+                user.setLanguageCode(result.getString("language"));
+                user.setBot(result.getBoolean("isBot"));
                 user.setBanned(result.getBoolean("isBanned"));
                 user.setSubscribe(result.getBoolean("isSubscribe"));
+
                 users.add(user);
             });
 
@@ -111,7 +122,7 @@ public class UserDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("getSubscribedUsers error");
+            MyLogger.logErr("getSubscribeUsers error");
             e.printStackTrace();
         }
 

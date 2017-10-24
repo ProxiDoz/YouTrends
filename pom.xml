@@ -57,9 +57,9 @@
 
         <!-- Telegram -->
         <dependency>
-            <groupId>com.github.pengrad</groupId>
-            <artifactId>java-telegram-bot-api</artifactId>
-            <version>3.4.0</version>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegrambots</artifactId>
+            <version>3.4</version>
         </dependency>
 
         <!-- Guava -->

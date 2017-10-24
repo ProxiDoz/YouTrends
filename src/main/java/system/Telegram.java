@@ -1,119 +1,108 @@
 package system;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
-import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.Update;
-import com.pengrad.telegrambot.request.GetUpdates;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.request.SendPhoto;
-import com.pengrad.telegrambot.response.GetUpdatesResponse;
+import org.telegram.telegrambots.api.methods.ParseMode;
+import org.telegram.telegrambots.api.methods.send.SendMessage;
+import org.telegram.telegrambots.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.api.objects.Message;
+import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import system.access.UserDAO;
 
-public class Telegram
+public class Telegram extends TelegramLongPollingBot
 {
-    private int lastMessageId = 0;
+    private static final String SUBSCRIBE_CMD = "/subscribe";
+    private static final String UNSUBSCRIBE_CMD = "/unsubscribe";
+    private static final String GET_TRENDS_CMD = "/trends";
 
-    private TelegramBot bot;
+    private static final String ON_SUBSCRIBE_TEXT = "You subscribe on trends.\nYou will get trends on 20:00 (MSK).";
+    private static final String ON_UNSUBSCRIBE_TEXT = "You unsubscribed from trends.";
+    private static final String ON_GET_TRENDS_TEXT = "You trends :)";
+    private static final String ON_UNRECOGNIZED_TEXT = "This command unrecognized";
+
+    private Settings settings;
 
     Telegram(Settings settings)
     {
-        bot = new TelegramBot(settings.getBotToken());
-        MyLogger.logInfo("Telegram bot init");
+        this.settings = settings;
+    }
 
-        GetUpdates getUpdates = new GetUpdates();
-        GetUpdatesResponse response = bot.execute(getUpdates);
-
-        MyLogger.logInfo("Init updates: " + response.updates().size());
-
-        if (response.updates().size() > 0)
+    @Override
+    public void onUpdateReceived(Update update)
+    {
+        try
         {
-            lastMessageId = response.updates().get(response.updates().size() - 1).updateId() + 1;
+            Message message = update.getMessage();
+
+            if (update.hasMessage() && message.hasText())
+            {
+                String chatId = message.getChatId().toString();
+                String text = message.getText();
+
+                MyLogger.logInfo("From: " + chatId + " Text: " + text);
+
+                User user = new User(message.getFrom());
+                // Register new user (if him real new)
+                UserDAO.getInstance().registerUserIfNotExist(user);
+
+                if (text.equalsIgnoreCase(SUBSCRIBE_CMD))
+                {
+                    UserDAO.getInstance().subscribeUser(user);
+
+                    SendMessage responseMessage = new SendMessage(chatId, ON_SUBSCRIBE_TEXT);
+                    execute(responseMessage);
+                }
+                else if (text.equalsIgnoreCase(UNSUBSCRIBE_CMD))
+                {
+                    UserDAO.getInstance().unsubscribeUser(user);
+
+                    SendMessage responseMessage = new SendMessage(chatId, ON_UNSUBSCRIBE_TEXT);
+                    execute(responseMessage);
+                }
+                else if (text.equalsIgnoreCase(GET_TRENDS_CMD))
+                {
+                    sendFeedToUser(LastFeedContainer.getFeed(), chatId);
+                }
+                else
+                {
+                    MyLogger.logInfo("Unrecognized text from " + chatId + ": " + text);
+
+                    SendMessage responseMessage = new SendMessage(chatId, ON_UNRECOGNIZED_TEXT);
+                    execute(responseMessage);
+                }
+            }
         }
-        else
+        catch (Exception e)
         {
-            lastMessageId = 0; // Тут поидее тянуть его из базы надо
+            MyLogger.logErr(e.toString());
         }
+    }
 
-        Executors.newSingleThreadScheduledExecutor()
-                 .scheduleWithFixedDelay(() -> {
-                     GetUpdates getUpdates1 = new GetUpdates();
-                     getUpdates1.offset(lastMessageId);
-                     GetUpdatesResponse response1 = bot.execute(getUpdates1);
-                     List<Update> updates = response1.updates();
+    @Override
+    public String getBotUsername()
+    {
+        return settings.getBotName();
+    }
 
-                     if (response1.updates().size() > 0)
-                     {
-                         MyLogger.logInfo("Have updates: " + response1.updates().size());
-
-                         lastMessageId = response1.updates().get(response1.updates().size() - 1).updateId() + 1;
-
-                         for (Update update : updates)
-                         {
-                             Message message = update.message();
-
-                             String chatId = message.from().id().toString();
-                             String text = message.text();
-
-                             MyLogger.logInfo("From: " + chatId + " Text: " + text);
-
-                             User user = new User();
-                             user.setChatId(chatId);
-
-                             // Register new user (if him real new)
-                             UserDAO.getInstance().insertUser(user);
-
-                             if (text != null)
-                             {
-                                 if (text.equalsIgnoreCase("/subscribe"))
-                                 {
-                                     UserDAO.getInstance().subscribeUser(user);
-
-                                     SendMessage sendMessage = new SendMessage(chatId,
-                                                                               "You subscribe on trends.\nYou will get trends on 20:00 (MSK).");
-                                     bot.execute(sendMessage);
-                                 }
-                                 else if (text.equalsIgnoreCase("/unsubscribe"))
-                                 {
-                                     UserDAO.getInstance().unsubscribeUser(user);
-
-                                     SendMessage sendMessage = new SendMessage(chatId,
-                                                                               "You unsubscribed from trends.");
-                                     bot.execute(sendMessage);
-                                 }
-                                 else if(text.equalsIgnoreCase("/trends"))
-                                 {
-                                     sendFeedToUser(LastFeedContainer.getFeed(), chatId);
-                                 }
-                                 else
-                                 {
-                                     MyLogger.logInfo("Unrecognized text from " + chatId + ": " + text);
-
-                                     SendMessage sendMessage = new SendMessage(chatId,
-                                                                               "This command unrecognized.");
-                                     bot.execute(sendMessage);
-                                 }
-                             }
-                         }
-                     }
-                 }, 5, 2, TimeUnit.SECONDS);
+    @Override
+    public String getBotToken()
+    {
+        return settings.getBotToken();
     }
 
     public void sendFeed(Feed feed)
     {
         try
         {
-            List<User> users = UserDAO.getInstance().getSubscribedUsers();
+            List<User> users = UserDAO.getInstance().getSubscribeUsers();
 
             for (User user : users)
             {
-                sendFeedToUser(feed, user.getChatId());
+                sendFeedToUser(feed, user.getId().toString());
             }
         }
         catch (Exception e)
@@ -127,21 +116,36 @@ public class Telegram
     {
         try
         {
-            SendMessage sendMessage = new SendMessage(chatId, "You trends :)");
-            bot.execute(sendMessage);
+            SendMessage sendMessage = new SendMessage(chatId, ON_GET_TRENDS_TEXT);
+            execute(sendMessage);
 
             for (Video video : feed.getVideos())
             {
-                // TODO: эту хуйню можно оптимизировать. Но только не сегодня.
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(video.getImage(), "jpg", baos);
-                baos.flush();
-                byte[] imageInByte = baos.toByteArray();
-                baos.close();
+                if (video.getFileId() == null)
+                {
+                    File image = new File("image");
+                    ImageIO.write(video.getImage(), "jpg", image);
 
-                SendPhoto sendPhoto = new SendPhoto(chatId, imageInByte);
-                sendPhoto.caption("https://www.youtube.com/watch?v=" + video.getId() + "\n" + video.getName());
-                bot.execute(sendPhoto);
+                    SendPhoto sendPhoto = new SendPhoto();
+                    sendPhoto.setChatId(chatId);
+                    sendPhoto.setNewPhoto(image);
+                    Message response = sendPhoto(sendPhoto);
+                    // Get id from last photo from list
+                    String fileId = response.getPhoto().get(response.getPhoto().size() - 1).getFileId();
+                    video.setFileId(fileId);
+                }
+                else
+                {
+                    SendPhoto sendPhoto = new SendPhoto();
+                    sendPhoto.setChatId(chatId);
+                    sendPhoto.setPhoto(video.getFileId());
+                    sendPhoto(sendPhoto);
+                }
+
+                SendMessage messageWithLink = new SendMessage(chatId, "[" + video.getName() + "](https://www.youtube.com/watch?v=" + video.getId() + ")");
+                messageWithLink.setParseMode(ParseMode.MARKDOWN);
+                messageWithLink.disableWebPagePreview();
+                execute(messageWithLink);
             }
         }
         catch (Exception e)
