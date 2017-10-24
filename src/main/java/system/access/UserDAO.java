@@ -8,7 +8,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import system.MyLogger;
 import system.User;
-import system.Video;
 
 public class UserDAO
 {
@@ -36,7 +35,7 @@ public class UserDAO
      */
     public boolean insertUser(User user)
     {
-        String insertQuery = "INSERT INTO User (chatId, isSubscubed) VALUES (?, 0)";
+        String insertQuery = "INSERT INTO User (chatId, isSubscuribe) VALUES (?, 0)";
 
         try
         {
@@ -59,7 +58,7 @@ public class UserDAO
 
     public void subscribeUser(User user)
     {
-        String updateQuery = "UPDATE User SET isSubscubed = 1 WHERE chatId = ?";
+        String updateQuery = "UPDATE User SET isSubscuribe = 1 WHERE chatId = ?";
 
         try
         {
@@ -76,7 +75,7 @@ public class UserDAO
 
     public void unsubscribeUser(User user)
     {
-        String updateQuery = "UPDATE User SET isSubscubed = 0 WHERE chatId = ?";
+        String updateQuery = "UPDATE User SET isSubscuribe = 0 WHERE chatId = ?";
 
         try
         {
@@ -95,7 +94,7 @@ public class UserDAO
     {
         List<User> users = new ArrayList<>();
 
-        String query = "SELECT * FROM User WHERE isSubscubed = 1";
+        String query = "SELECT * FROM User WHERE isSubscuribe = 1";
 
         try
         {
@@ -104,7 +103,7 @@ public class UserDAO
                 User user = new User();
                 user.setChatId(result.getString("chatId"));
                 user.setBanned(result.getBoolean("isBanned"));
-                user.setSubscribed(result.getBoolean("isSubscribed"));
+                user.setSubscribe(result.getBoolean("isSubscribe"));
                 users.add(user);
             });
 
