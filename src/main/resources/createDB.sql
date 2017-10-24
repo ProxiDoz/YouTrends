@@ -36,5 +36,6 @@ CREATE TABLE BannedChannel(
 
 CREATE TABLE User(
   chatId VARCHAR (16) PRIMARY KEY,
-  isBanned BOOL DEFAULT FALSE
+  isBanned BOOL DEFAULT FALSE,
+  isSubscribed BOOL DEFAULT FALSE
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

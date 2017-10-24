@@ -13,7 +13,7 @@ import org.json.JSONObject;
 
 public class YouTubeParser implements Callable<Feed>
 {
-    private static final String TRENDING_URL = "https://www.youtube.com/feed/trending";
+    private static final String TRENDING_URL = "https://www.youtube.com/feed/trending?hl=ru&gl=RU";
     private static final long YOUTUBE_WAIT_TIME = 10000; // ms
 
     @Override
@@ -21,6 +21,7 @@ public class YouTubeParser implements Callable<Feed>
     {
         try
         {
+            MyLogger.logInfo("Start YouTube parsing");
             WebClient webClient = new WebClient();
 
             webClient.getOptions().setJavaScriptEnabled(false);
@@ -107,7 +108,7 @@ public class YouTubeParser implements Callable<Feed>
         }
         catch (Exception e)
         {
-            MyLogger.logErr("Ошибка парсинга");
+            MyLogger.logErr("YouTube parsing error. " + e);
             e.printStackTrace();
             return null;
         }

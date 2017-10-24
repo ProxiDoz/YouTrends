@@ -12,9 +12,6 @@ import system.Video;
 
 public class UserDAO
 {
-    // поднять сервер на digitalocean
-    // bitbucket
-    // скрипт запуска
     private JdbcTemplate jdbcTemplate;
 
     private static UserDAO instance;
@@ -34,31 +31,71 @@ public class UserDAO
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public void insertUser(User user)
+    /**
+     * @return - true - new user was inserted. false - user was exist.
+     */
+    public boolean insertUser(User user)
     {
-        String insertQuery = "INSERT INTO User (chatId) VALUES (?)";
+        String insertQuery = "INSERT INTO User (chatId, isSubscubed) VALUES (?, 0)";
 
         try
         {
-            jdbcTemplate.update(insertQuery,
-                                user.getChatId());
+            jdbcTemplate.update(insertQuery, user.getChatId());
         }
         catch (DuplicateKeyException e)
         {
-            // нихуя. потому что это нормальное поведение
+            return false;
         }
         catch (Exception e)
         {
             MyLogger.logErr("insertUser error");
             e.printStackTrace();
+            return false;
         }
+
+        MyLogger.logWarn("New user: " + user.getChatId());
+        return true;
     }
 
-    public List<User> getUsers()
+    public void subscribeUser(User user)
+    {
+        String updateQuery = "UPDATE User SET isSubscubed = 1 WHERE chatId = ?";
+
+        try
+        {
+            jdbcTemplate.update(updateQuery, user.getChatId());
+        }
+        catch (Exception e)
+        {
+            MyLogger.logErr("subscribeUser error");
+            e.printStackTrace();
+        }
+
+        MyLogger.logWarn("Subscribe. User: " + user.getChatId());
+    }
+
+    public void unsubscribeUser(User user)
+    {
+        String updateQuery = "UPDATE User SET isSubscubed = 0 WHERE chatId = ?";
+
+        try
+        {
+            jdbcTemplate.update(updateQuery, user.getChatId());
+        }
+        catch (Exception e)
+        {
+            MyLogger.logErr("unsubscribeUser error");
+            e.printStackTrace();
+        }
+
+        MyLogger.logWarn("Unubscribe. User: " + user.getChatId());
+    }
+
+    public List<User> getSubscribedUsers()
     {
         List<User> users = new ArrayList<>();
 
-        String query = "SELECT * FROM User";
+        String query = "SELECT * FROM User WHERE isSubscubed = 1";
 
         try
         {
@@ -67,6 +104,7 @@ public class UserDAO
                 User user = new User();
                 user.setChatId(result.getString("chatId"));
                 user.setBanned(result.getBoolean("isBanned"));
+                user.setSubscribed(result.getBoolean("isSubscribed"));
                 users.add(user);
             });
 
@@ -74,7 +112,7 @@ public class UserDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("getUsers error");
+            MyLogger.logErr("getSubscribedUsers error");
             e.printStackTrace();
         }
 

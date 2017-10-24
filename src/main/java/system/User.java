@@ -4,6 +4,7 @@ public class User
 {
     private String chatId;
     private boolean isBanned;
+    private boolean isSubscribed;
 
     public String getChatId()
     {
@@ -23,5 +24,15 @@ public class User
     public void setBanned(boolean banned)
     {
         isBanned = banned;
+    }
+
+    public boolean isSubscribed()
+    {
+        return isSubscribed;
+    }
+
+    public void setSubscribed(boolean subscribed)
+    {
+        isSubscribed = subscribed;
     }
 }

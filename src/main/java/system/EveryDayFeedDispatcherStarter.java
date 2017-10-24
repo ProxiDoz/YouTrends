@@ -10,14 +10,14 @@ public class EveryDayFeedDispatcherStarter
     private static final int DISPATCHER_PERIOD = 1; // Days
 
     private static final int DISPATCHER_HOUR = 20;
-    private static final int DISPATCHER_MINUTES = 00;
+    private static final int DISPATCHER_MINUTES = 0;
     private static final int DISPATCHER_SECONDS = 0;
 
     public EveryDayFeedDispatcherStarter(Telegram telegram)
     {
         try
         {
-            MyLogger.logInfo("Start");
+            MyLogger.logInfo("EveryDayFeedDispatcher Start");
             // Берём сегодняшний день и задаем время рассылки
             Date date = new Date();
             Calendar calendar = Calendar.getInstance();
@@ -37,11 +37,15 @@ public class EveryDayFeedDispatcherStarter
                 startDelay = calendar.getTimeInMillis() - System.currentTimeMillis();
             }
 
+            // Start every day feed dispatcher
             Executors.newSingleThreadScheduledExecutor()
                      .scheduleWithFixedDelay(new EveryDayFeedDispatcherRunnable(telegram),
                                              startDelay,
                                              TimeUnit.DAYS.toMillis(DISPATCHER_PERIOD),
                                              TimeUnit.MILLISECONDS);
+
+            // Start once feed parser for access to feed from start
+            Executors.newSingleThreadExecutor().execute(new FeedParserRunnable(telegram));
         }
         catch (Exception e)
         {

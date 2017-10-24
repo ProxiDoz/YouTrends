@@ -5,12 +5,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public class EveryDayFeedDispatcherRunnable implements Runnable
+public class FeedParserRunnable implements Runnable
 {
     private final ImageCollector imageCollector = new ImageCollector();
     private final Telegram telegram;
 
-    public EveryDayFeedDispatcherRunnable(Telegram telegram)
+    public FeedParserRunnable(Telegram telegram)
     {
         this.telegram = telegram;
     }
@@ -20,7 +20,7 @@ public class EveryDayFeedDispatcherRunnable implements Runnable
     {
         try
         {
-            MyLogger.logInfo("Start every day feed collect");
+            MyLogger.logInfo("Start feed collect");
             ScheduledFuture<Feed> future = Executors.newSingleThreadScheduledExecutor()
                                                     .schedule(new YouTubeParser(),
                                                               0,
@@ -40,9 +40,6 @@ public class EveryDayFeedDispatcherRunnable implements Runnable
             imageCollector.collectImages(filteredFeed);
 
             LastFeedContainer.setFeed(filteredFeed);
-
-            MyLogger.logInfo("Start send feed");
-            telegram.sendFeed(filteredFeed);
         }
         catch (Exception e)
         {
