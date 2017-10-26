@@ -1,46 +1,44 @@
-CREATE TABLE Feed(
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  dateCollect TIMESTAMP
-) CHARACTER SET utf8 COLLATE utf8_general_ci;
-
-CREATE TABLE Video(
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  feedId INTEGER NOT NULL,
-  name TEXT,
-  description TEXT,
-  channel TEXT,
-  videoId TEXT,
-  imageUrl TEXT,
-  old TEXT,
-  viewCount INTEGER,
-  FOREIGN KEY (feedId) REFERENCES Feed(id)
-)CHARACTER SET utf8 COLLATE utf8_general_ci;
-
-CREATE TABLE BannedTag(
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  name TEXT NOT NULL
-) CHARACTER SET utf8 COLLATE utf8_general_ci;
-
-CREATE TABLE BannedTagsStat(
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  tagId INTEGER,
-  date TIMESTAMP,
-  count INTEGER,
-  FOREIGN KEY (tagId) REFERENCES BannedTag(id)
-) CHARACTER SET utf8 COLLATE utf8_general_ci;
-
-CREATE TABLE BannedChannel(
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  name TEXT NOT NULL
-) CHARACTER SET utf8 COLLATE utf8_general_ci;
-
-CREATE TABLE User(
-  id INT PRIMARY KEY,
-  firstName TEXT,
-  lastName TEXT,
-  userName TEXT,
-  language TEXT,
-  isBot BOOL,
-  isBanned BOOL DEFAULT FALSE,
+CREATE TABLE User (
+  id          INT PRIMARY KEY,
+  firstName   TEXT,
+  lastName    TEXT,
+  userName    TEXT,
+  language    TEXT,
+  isBot       BOOL,
+  isBanned    BOOL DEFAULT FALSE,
   isSubscribe BOOL DEFAULT FALSE
-) CHARACTER SET utf8 COLLATE utf8_general_ci;
+)
+  CHARACTER SET utf8
+  COLLATE utf8_general_ci;
+
+CREATE TABLE BannedChannel (
+  name VARCHAR(64) PRIMARY KEY
+)
+  CHARACTER SET utf8
+  COLLATE utf8_general_ci;
+
+CREATE TABLE BannedTag (
+  name VARCHAR(64) PRIMARY KEY
+)
+  CHARACTER SET utf8
+  COLLATE utf8_general_ci;
+
+CREATE TABLE UserBannedChannel (
+  id        INTEGER PRIMARY KEY AUTO_INCREMENT,
+  userId    INTEGER     NOT NULL,
+  channelId VARCHAR(64) NOT NULL,
+  FOREIGN KEY (userId) REFERENCES User (id),
+  FOREIGN KEY (channelId) REFERENCES BannedChannel (name)
+)
+  CHARACTER SET utf8
+  COLLATE utf8_general_ci;
+
+CREATE TABLE UserBannedTag (
+  id     INTEGER PRIMARY KEY AUTO_INCREMENT,
+  userId INTEGER     NOT NULL,
+  tagId  VARCHAR(64) NOT NULL,
+  FOREIGN KEY (userId) REFERENCES User (id),
+  FOREIGN KEY (tagId) REFERENCES BannedTag (name)
+)
+  CHARACTER SET utf8
+  COLLATE utf8_general_ci;

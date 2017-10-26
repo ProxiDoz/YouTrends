@@ -1,0 +1,9 @@
+.closeButton {
+    font-weight: bold;
+    background-color: #ff3a33;
+}
+
+.textButton {
+    margin-left: 10px;
+    margin-top: 10px;
+}
