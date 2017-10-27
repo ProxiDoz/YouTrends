@@ -1,5 +1,7 @@
 package system;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +13,8 @@ import system.access.UserDAO;
 @RestController
 public class RestApiController
 {
+    private static final Logger logger = LogManager.getLogger(RestApiController.class);
+
     @Autowired
     private UserDAO userDAO;
 
@@ -24,7 +28,7 @@ public class RestApiController
         }
         catch (Exception e)
         {
-            MyLogger.logErr("login error");
+            logger.error("Error", e);
         }
 
         return false;
@@ -45,7 +49,7 @@ public class RestApiController
         }
         catch (Exception e)
         {
-            MyLogger.logErr("login error");
+            logger.error("Error", e);
         }
 
         return new UserSettingsData();
@@ -67,7 +71,7 @@ public class RestApiController
         }
         catch (Exception e)
         {
-            MyLogger.logErr("login error");
+            logger.error("Error", e);
         }
 
         return null;

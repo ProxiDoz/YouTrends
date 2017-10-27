@@ -5,8 +5,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class EveryDayFeedDispatcherRunnable implements Runnable
 {
+    private static final Logger logger = LogManager.getLogger(EveryDayFeedDispatcherRunnable.class);
+
     private final ImageCollector imageCollector = new ImageCollector();
     private final Telegram telegram;
 
@@ -20,34 +25,33 @@ public class EveryDayFeedDispatcherRunnable implements Runnable
     {
         try
         {
-            MyLogger.logInfo("Start every day feed collect");
+            logger.info("Start every day feed collect");
             ScheduledFuture<Feed> future = Executors.newSingleThreadScheduledExecutor()
                                                     .schedule(new YouTubeParser(),
                                                               0,
                                                               TimeUnit.MICROSECONDS);
 
             Feed feed = future.get();
-            MyLogger.logInfo("Feed was collect. Feed size: " + feed.getVideos().size());
+            logger.info("Feed was collect. Feed size: " + feed.getVideos().size());
 
-            MyLogger.logInfo("Start filtration feed");
+            logger.info("Start filtration feed");
             List<Video> filteredVideos = feed.filtration();
 
             Feed filteredFeed = new Feed();
             filteredFeed.setVideos(filteredVideos);
 
-            MyLogger.logInfo("Feed size after filtration: " + filteredFeed.getVideos().size());
-            MyLogger.logInfo("Start collect images");
+            logger.info("Feed size after filtration: " + filteredFeed.getVideos().size());
+            logger.info("Start collect images");
             imageCollector.collectImages(filteredFeed);
 
             LastFeedContainer.setFeed(filteredFeed);
 
-            MyLogger.logInfo("Start send feed");
+            logger.info("Start send feed");
             telegram.sendFeed(filteredFeed);
         }
         catch (Exception e)
         {
-            MyLogger.logErr("EveryDayFeedDispatcherRunnable error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
     }
 }

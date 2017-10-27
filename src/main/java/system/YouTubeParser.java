@@ -7,12 +7,16 @@ import java.util.regex.Pattern;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.google.common.base.CharMatcher;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class YouTubeParser implements Callable<Feed>
 {
+    private static final Logger logger = LogManager.getLogger(YouTubeParser.class);
+
     private static final String TRENDING_URL = "https://www.youtube.com/feed/trending?hl=ru&gl=RU";
     private static final long YOUTUBE_WAIT_TIME = 10000; // ms
 
@@ -21,7 +25,7 @@ public class YouTubeParser implements Callable<Feed>
     {
         try
         {
-            MyLogger.logInfo("Start YouTube parsing");
+            logger.info("Start YouTube parsing");
             WebClient webClient = new WebClient();
 
             webClient.getOptions().setJavaScriptEnabled(false);
@@ -95,10 +99,10 @@ public class YouTubeParser implements Callable<Feed>
                         }
                         catch (JSONException e)
                         {
-                            MyLogger.logWarn("JSON error.");
+                            logger.error("JSON Error", e);
                             // Выводим последнее видео на котором выпал exception,
                             // чтобы потом по логам чекнуть где трабла
-                            MyLogger.logWarn(feed.getVideos().get(feed.getVideos().size()-1).toString());
+                            logger.warn(feed.getVideos().get(feed.getVideos().size()-1).toString());
                         }
                     }
                 }
@@ -108,8 +112,7 @@ public class YouTubeParser implements Callable<Feed>
         }
         catch (Exception e)
         {
-            MyLogger.logErr("YouTube parsing error. " + e);
-            e.printStackTrace();
+            logger.error("Error", e);
             return null;
         }
     }

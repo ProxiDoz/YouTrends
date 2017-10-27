@@ -3,12 +3,15 @@ package system.access;
 import java.sql.Timestamp;
 import javax.sql.DataSource;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
 import system.Feed;
-import system.MyLogger;
 
 public class FeedDAO
 {
+    private static final Logger logger = LogManager.getLogger(FeedDAO.class);
+
     private JdbcTemplate jdbcTemplate;
 
     public void setDataSource(DataSource dataSource)
@@ -43,8 +46,7 @@ public class FeedDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("insertFeed error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
 
         return -1;

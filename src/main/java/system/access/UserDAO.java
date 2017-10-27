@@ -5,14 +5,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
-import org.springframework.dao.DuplicateKeyException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
-import system.MyLogger;
 import system.User;
 import system.UserSettingsData;
 
 public class UserDAO
 {
+    private static final Logger logger = LogManager.getLogger(UserDAO.class);
+
     private JdbcTemplate jdbcTemplate;
 
     private static UserDAO instance;
@@ -55,11 +57,8 @@ public class UserDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("registerUserIfNotExist error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
-
-        MyLogger.logWarn("New user: " + user.getId() + " " + user.getFirstName());
     }
 
     public void subscribeUser(User user)
@@ -72,11 +71,10 @@ public class UserDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("subscribeUser error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
 
-        MyLogger.logWarn("Subscribe. User: " + user.getId().toString());
+        logger.info("Subscription: " + user.getId().toString());
     }
 
     public void unsubscribeUser(User user)
@@ -89,11 +87,10 @@ public class UserDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("unsubscribeUser error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
 
-        MyLogger.logWarn("Unubscribe. User: " + user.getId().toString());
+        logger.info("Unsubscribing: " + user.getId().toString());
     }
 
     public List<User> getSubscribeUsers()
@@ -124,8 +121,7 @@ public class UserDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("getSubscribeUsers error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
 
         return users;
@@ -151,8 +147,7 @@ public class UserDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("checkCredential error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
 
         return false;
@@ -216,8 +211,7 @@ public class UserDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr(" error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
 
         return null;
@@ -238,8 +232,7 @@ public class UserDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("checkCredential error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
 
         return bannedChannels;
@@ -260,8 +253,7 @@ public class UserDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("checkCredential error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
 
         return bannedTags;
@@ -274,21 +266,7 @@ public class UserDAO
                              "ON DUPLICATE KEY UPDATE " +
                              "name = VALUES(name)";
 
-        try
-        {
-            for (String bannedChannel : bannedChannels)
-            {
-                if (bannedChannel != null && !bannedChannel.isEmpty() && bannedChannel.length() < 64 && !bannedChannel.equals(" "))
-                {
-                    jdbcTemplate.update(insertQuery, bannedChannel);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            MyLogger.logErr("registerUserIfNotExist error");
-            e.printStackTrace();
-        }
+        multipleInsert(insertQuery, bannedChannels);
     }
 
     private void insertBannedTags(List<String> bannedTags)
@@ -298,20 +276,24 @@ public class UserDAO
                              "ON DUPLICATE KEY UPDATE " +
                              "name = VALUES(name)";
 
+        multipleInsert(insertQuery, bannedTags);
+    }
+
+    private void multipleInsert(String query, List<String> values)
+    {
         try
         {
-            for (String bannedTag : bannedTags)
+            for (String value : values)
             {
-                if (bannedTag != null && !bannedTag.isEmpty() && bannedTag.length() < 64 && !bannedTag.equals(" "))
+                if (value != null && !value.isEmpty() && value.length() < 64 && !value.equals(" "))
                 {
-                    jdbcTemplate.update(insertQuery, bannedTag);
+                    jdbcTemplate.update(query, value);
                 }
             }
         }
         catch (Exception e)
         {
-            MyLogger.logErr(" error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
     }
 }

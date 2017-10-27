@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.sql.DataSource;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
-import system.MyLogger;
 
 public class BannedTagDAO
 {
+    private static final Logger logger = LogManager.getLogger(BannedTagDAO.class);
+
     private JdbcTemplate jdbcTemplate;
 
     private static BannedTagDAO instance;
@@ -45,8 +48,7 @@ public class BannedTagDAO
         }
         catch (Exception e)
         {
-            MyLogger.logErr("getBannedTags error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
 
         return bannedTags;

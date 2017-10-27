@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.api.methods.ParseMode;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.send.SendPhoto;
@@ -15,6 +17,8 @@ import system.access.UserDAO;
 
 public class Telegram extends TelegramLongPollingBot
 {
+    private static final Logger logger = LogManager.getLogger(Telegram.class);
+
     private static final String SUBSCRIBE_CMD = "/subscribe";
     private static final String UNSUBSCRIBE_CMD = "/unsubscribe";
     private static final String GET_TRENDS_CMD = "/trends";
@@ -43,9 +47,10 @@ public class Telegram extends TelegramLongPollingBot
                 String chatId = message.getChatId().toString();
                 String text = message.getText();
 
-                MyLogger.logInfo("From: " + chatId + " Text: " + text);
+                logger.info("From: {} Text: {}", chatId, text);
 
                 User user = new User(message.getFrom());
+                // TODO: add cache (don't use DAO)
                 // Register new user (if him real new)
                 UserDAO.getInstance().registerUserIfNotExist(user);
 
@@ -69,7 +74,7 @@ public class Telegram extends TelegramLongPollingBot
                 }
                 else
                 {
-                    MyLogger.logInfo("Unrecognized text from " + chatId + ": " + text);
+                    logger.info("Unrecognized text from {}: {}", chatId, text);
 
                     SendMessage responseMessage = new SendMessage(chatId, ON_UNRECOGNIZED_TEXT);
                     execute(responseMessage);
@@ -78,7 +83,7 @@ public class Telegram extends TelegramLongPollingBot
         }
         catch (Exception e)
         {
-            MyLogger.logErr(e.toString());
+            logger.error("Error", e);
         }
     }
 
@@ -107,8 +112,7 @@ public class Telegram extends TelegramLongPollingBot
         }
         catch (Exception e)
         {
-            MyLogger.logErr("Send feed error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
     }
 
@@ -150,8 +154,7 @@ public class Telegram extends TelegramLongPollingBot
         }
         catch (Exception e)
         {
-            MyLogger.logErr("Send feed to user error");
-            e.printStackTrace();
+            logger.error("Error", e);
         }
     }
 }

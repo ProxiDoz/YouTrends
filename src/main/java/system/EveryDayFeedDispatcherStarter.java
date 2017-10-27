@@ -5,10 +5,14 @@ import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.TelegramBotsApi;
 
 public class EveryDayFeedDispatcherStarter
 {
+    private static final Logger logger = LogManager.getLogger(EveryDayFeedDispatcherStarter.class);
+
     private static final int DISPATCHER_PERIOD = 1; // Days
 
     private static final int DISPATCHER_HOUR = 20;
@@ -24,10 +28,9 @@ public class EveryDayFeedDispatcherStarter
             try {
                 botsApi.registerBot(telegram);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Bot can't register", e);
             }
 
-            MyLogger.logInfo("EveryDayFeedDispatcher Start");
             // Берём сегодняшний день и задаем время рассылки
             Date date = new Date();
             Calendar calendar = Calendar.getInstance();
@@ -55,12 +58,11 @@ public class EveryDayFeedDispatcherStarter
                                              TimeUnit.MILLISECONDS);
 
             // Start once feed parser for access to feed from start
-            Executors.newSingleThreadExecutor().execute(new FeedParserRunnable(telegram));
+            Executors.newSingleThreadExecutor().execute(new FeedParserRunnable());
         }
         catch (Exception e)
         {
-            MyLogger.logErr("EveryDayFeedDispatcherStarter throw exception");
-            e.printStackTrace();
+            logger.error("Some error", e);
         }
     }
 }

@@ -1,17 +1,20 @@
 package system;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import system.access.BannedChannelDAO;
 import system.access.BannedTagDAO;
 
 public class Feed
 {
+    private static final Logger logger = LogManager.getLogger(Feed.class);
+
     private List<Video> videos = new ArrayList<>();
 
     private List<String> bannedTags;
@@ -57,7 +60,7 @@ public class Feed
 
             if (matcher.find())
             {
-                MyLogger.logInfo("Тег-фильтрация в названии: [" + word + "] " + video.getName());
+                logger.info("Тег-фильтрация в названии: [{}] {}" , word, video.getName());
                 return false;
             }
         }
@@ -79,7 +82,7 @@ public class Feed
 
             if (matcher.find())
             {
-                MyLogger.logInfo("Тег-фильтрация в описании: [" + word + "] " + video.getDescription());
+                logger.info("Тег-фильтрация в описании: [{}]{} ", word, video.getDescription());
                 return false;
             }
         }
@@ -97,8 +100,7 @@ public class Feed
         }
         catch (Exception e)
         {
-            MyLogger.logErr("oldFilter error");
-            MyLogger.logErr(video.toString());
+            logger.error("Error", e);
         }
 
         return false;
@@ -113,7 +115,7 @@ public class Feed
 
             if (matcher.find())
             {
-                MyLogger.logInfo("Канал-фильтрация: [" + channel + "] " + video.getName());
+                logger.info("Канал-фильтрация: [{}] {}", channel, video.getName());
                 return false;
             }
         }

@@ -4,9 +4,14 @@ import java.net.URL;
 
 import javax.imageio.ImageIO;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class ImageCollector
 {
+    private static final Logger logger = LogManager.getLogger(ImageCollector.class);
+
     void collectImages(Feed feed)
     {
         for (Video video : feed.getVideos())
@@ -19,7 +24,7 @@ public class ImageCollector
             }
             catch (Exception e)
             {
-                MyLogger.logErr("collectImages error");
+                logger.error("Error", e);
             }
         }
     }
