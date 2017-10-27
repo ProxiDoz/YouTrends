@@ -1,4 +1,4 @@
-package system;
+package system.shared;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,19 +15,10 @@ public class Feed
 {
     private static final Logger logger = LogManager.getLogger(Feed.class);
 
-    private List<Video> videos = new ArrayList<>();
-
-    private List<String> bannedTags;
     private List<String> bannedChannels;
+    private List<String> bannedTags;
 
-    public Feed()
-    {
-        List<String> bannedTags = BannedTagDAO.getInstance().getBannedTags();
-        List<String> bannedChannels = BannedChannelDAO.getInstance().getBannedChannels();
-
-        this.bannedTags = new ArrayList<>(bannedTags);
-        this.bannedChannels = new ArrayList<>(bannedChannels);
-    }
+    private List<Video> videos = new ArrayList<>();
 
     public List<Video> getVideos()
     {
@@ -39,8 +30,11 @@ public class Feed
         this.videos = videos;
     }
 
-    public List<Video> filtration()
+    public List<Video> filtration(String chatId)
     {
+        bannedChannels = BannedChannelDAO.getInstance().getBannedChannels(chatId);
+        bannedTags = BannedTagDAO.getInstance().getBannedTags(chatId);
+
         return videos.stream()
                      .filter(this::oldFilter)
                      .filter(this::tagNameFilter)

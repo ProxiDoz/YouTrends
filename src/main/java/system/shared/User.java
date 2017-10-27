@@ -1,4 +1,4 @@
-package system;
+package system.shared;
 
 public class User
 {

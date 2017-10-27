@@ -6,11 +6,6 @@
 
     <context:property-placeholder location="jdbc.properties, settings.properties"/>
 
-    <!-- DAO -->
-    <bean id="feedDAO" class="system.access.FeedDAO">
-        <property name="dataSource" ref="dataSource"/>
-    </bean>
-
     <bean id="bannedTagDAO" class="system.access.BannedTagDAO">
         <property name="dataSource" ref="dataSource"/>
     </bean>
@@ -23,17 +18,9 @@
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
-    <bean id="videoDAO" class="system.access.VideoDAO">
-        <property name="dataSource" ref="dataSource"/>
-    </bean>
-
-    <bean class="system.EveryDayFeedDispatcherStarter">
+    <bean class="system.Starter">
         <constructor-arg name="telegram" ref="telegram"/>
     </bean>
-
-    <!--<bean class="system.TestStarter">-->
-        <!--<constructor-arg name="telegram" ref="telegram"/>-->
-    <!--</bean>-->
 
     <bean id="telegram" class="system.Telegram">
         <constructor-arg name="settings" ref="settings"/>
@@ -41,7 +28,7 @@
 
     <bean class="system.YouTubeParser"/>
 
-    <bean id="settings" class="system.Settings">
+    <bean id="settings" class="system.shared.Settings">
         <constructor-arg name="botName" value="${botName}"/>
         <constructor-arg name="botToken" value="${botToken}"/>
     </bean>

@@ -5,11 +5,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
-import system.User;
-import system.UserSettingsData;
+import system.shared.User;
+import system.shared.UserSettingsData;
 
 public class UserDAO
 {
@@ -34,10 +35,13 @@ public class UserDAO
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public void registerUserIfNotExist(User user)
+    public String registerUserIfNotExist(User user)
     {
-        String insertQuery = "INSERT INTO User (id, firstName, lastName, userName, language, isBot) " +
-                             "VALUES (?, ?, ?, ?, ?, ?)" +
+        String password = RandomStringUtils.random(10, "zvnjfsqw1234567890");
+
+        String query = "SELECT * FROM User WHERE id = ?";
+        String insertQuery = "INSERT INTO User (id, firstName, lastName, userName, language, isBot, password) " +
+                             "VALUES (?, ?, ?, ?, ?, ?, ?)" +
                              "ON DUPLICATE KEY UPDATE " +
                              "firstName = VALUES(firstName)," +
                              "lastName = VALUES(lastName)," +
@@ -47,18 +51,36 @@ public class UserDAO
 
         try
         {
-            jdbcTemplate.update(insertQuery,
-                                user.getId(),
-                                user.getFirstName(),
-                                user.getLastName(),
-                                user.getUserName(),
-                                user.getLanguageCode(),
-                                user.getBot());
+            StringBuilder stringBuilder = new StringBuilder();
+
+            jdbcTemplate.query(query, result ->
+            {
+                String pas = result.getString("password");
+                if (pas != null)
+                {
+                    stringBuilder.append(pas);
+                }
+            }, user.getId().toString());
+
+            if (stringBuilder.length() == 0)
+            {
+                jdbcTemplate.update(insertQuery,
+                                    user.getId(),
+                                    user.getFirstName(),
+                                    user.getLastName(),
+                                    user.getUserName(),
+                                    user.getLanguageCode(),
+                                    user.getBot(),
+                                    password);
+                return password;
+            }
         }
         catch (Exception e)
         {
             logger.error("Error", e);
         }
+
+        return null;
     }
 
     public void subscribeUser(User user)
@@ -193,7 +215,8 @@ public class UserDAO
 
             for (String bannedChannel : userSettingData.getBannedChannels())
             {
-                if (bannedChannel != null && !bannedChannel.isEmpty() && bannedChannel.length() < 64 && !bannedChannel.equals(" "))
+                if (bannedChannel != null && !bannedChannel.isEmpty() && bannedChannel.length() < 64 && !bannedChannel.equals(
+                        " "))
                 {
                     jdbcTemplate.update(insertChannelQuery, login, bannedChannel);
                 }
@@ -295,5 +318,28 @@ public class UserDAO
         {
             logger.error("Error", e);
         }
+    }
+
+    public String getUserPassword(String chatId)
+    {
+        String query = "SELECT password FROM User WHERE id = ?";
+
+        StringBuilder passwordFromDB = new StringBuilder();
+
+        try
+        {
+            jdbcTemplate.query(query, result ->
+            {
+                passwordFromDB.append(result.getString("password"));
+            }, chatId);
+
+            return passwordFromDB.toString();
+        }
+        catch (Exception e)
+        {
+            logger.error("Error", e);
+        }
+
+        return null;
     }
 }

@@ -12,6 +12,8 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import system.shared.Feed;
+import system.shared.Video;
 
 public class YouTubeParser implements Callable<Feed>
 {

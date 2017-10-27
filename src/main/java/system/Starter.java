@@ -9,9 +9,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.TelegramBotsApi;
 
-public class EveryDayFeedDispatcherStarter
+public class Starter
 {
-    private static final Logger logger = LogManager.getLogger(EveryDayFeedDispatcherStarter.class);
+    private static final Logger logger = LogManager.getLogger(Starter.class);
 
     private static final int DISPATCHER_PERIOD = 1; // Days
 
@@ -19,7 +19,7 @@ public class EveryDayFeedDispatcherStarter
     private static final int DISPATCHER_MINUTES = 0;
     private static final int DISPATCHER_SECONDS = 0;
 
-    public EveryDayFeedDispatcherStarter(Telegram telegram)
+    public Starter(Telegram telegram)
     {
         try
         {
@@ -52,13 +52,17 @@ public class EveryDayFeedDispatcherStarter
 
             // Start every day feed dispatcher
             Executors.newSingleThreadScheduledExecutor()
-                     .scheduleWithFixedDelay(new EveryDayFeedDispatcherRunnable(telegram),
+                     .scheduleWithFixedDelay(new EveryDayFeedDispatcher(telegram),
                                              startDelay,
                                              TimeUnit.DAYS.toMillis(DISPATCHER_PERIOD),
                                              TimeUnit.MILLISECONDS);
 
-            // Start once feed parser for access to feed from start
-            Executors.newSingleThreadExecutor().execute(new FeedParserRunnable());
+            // Start FeedParser every hour
+            Executors.newSingleThreadScheduledExecutor()
+                     .scheduleWithFixedDelay(new FeedParserRunnable(),
+                                             0,
+                                             1,
+                                             TimeUnit.HOURS);
         }
         catch (Exception e)
         {

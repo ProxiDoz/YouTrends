@@ -4,6 +4,7 @@ CREATE TABLE User (
   lastName    TEXT,
   userName    TEXT,
   language    TEXT,
+  password    TEXT,
   isBot       BOOL,
   isBanned    BOOL DEFAULT FALSE,
   isSubscribe BOOL DEFAULT FALSE

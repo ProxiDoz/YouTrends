@@ -1,4 +1,4 @@
-package system;
+package system.shared;
 
 import java.awt.image.BufferedImage;
 

@@ -14,19 +14,24 @@ import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import system.access.UserDAO;
+import system.shared.Settings;
+import system.shared.User;
+import system.shared.Video;
 
 public class Telegram extends TelegramLongPollingBot
 {
     private static final Logger logger = LogManager.getLogger(Telegram.class);
 
-    private static final String SUBSCRIBE_CMD = "/subscribe";
-    private static final String UNSUBSCRIBE_CMD = "/unsubscribe";
     private static final String GET_TRENDS_CMD = "/trends";
+    private static final String SUBSCRIBE_CMD = "/subscribe";
+    private static final String GETPASS_CMD = "/getpass";
+    private static final String UNSUBSCRIBE_CMD = "/unsubscribe";
 
     private static final String ON_SUBSCRIBE_TEXT = "You subscribe on trends.\nYou will get trends on 20:00 (MSK).";
     private static final String ON_UNSUBSCRIBE_TEXT = "You unsubscribed from trends.";
     private static final String ON_GET_TRENDS_TEXT = "You trends :)";
     private static final String ON_UNRECOGNIZED_TEXT = "This command unrecognized";
+    private static final String REGISTER_MESSAGE = "You may set your filters on www.youtrends.org\nYour login: %s\nYour password: %s";
 
     private Settings settings;
 
@@ -52,7 +57,16 @@ public class Telegram extends TelegramLongPollingBot
                 User user = new User(message.getFrom());
                 // TODO: add cache (don't use DAO)
                 // Register new user (if him real new)
-                UserDAO.getInstance().registerUserIfNotExist(user);
+                String password = UserDAO.getInstance().registerUserIfNotExist(user);
+
+                // is user new ?
+                if (password != null)
+                {
+                    SendMessage responseMessage = new SendMessage(chatId, String.format(REGISTER_MESSAGE,
+                                                                                        chatId,
+                                                                                        password));
+                    execute(responseMessage);
+                }
 
                 if (text.equalsIgnoreCase(SUBSCRIBE_CMD))
                 {
@@ -70,7 +84,14 @@ public class Telegram extends TelegramLongPollingBot
                 }
                 else if (text.equalsIgnoreCase(GET_TRENDS_CMD))
                 {
-                    sendFeedToUser(LastFeedContainer.getFeed(), chatId);
+                    sendFeedToUser(LastFeedContainer.getVideosForUser(chatId), chatId);
+                }
+                else if (text.equalsIgnoreCase(GETPASS_CMD))
+                {
+                    String pass = UserDAO.getInstance().getUserPassword(chatId);
+
+                    SendMessage responseMessage = new SendMessage(chatId, "Your password: " + pass);
+                    execute(responseMessage);
                 }
                 else
                 {
@@ -99,31 +120,14 @@ public class Telegram extends TelegramLongPollingBot
         return settings.getBotToken();
     }
 
-    public void sendFeed(Feed feed)
-    {
-        try
-        {
-            List<User> users = UserDAO.getInstance().getSubscribeUsers();
-
-            for (User user : users)
-            {
-                sendFeedToUser(feed, user.getId().toString());
-            }
-        }
-        catch (Exception e)
-        {
-            logger.error("Error", e);
-        }
-    }
-
-    public void sendFeedToUser(Feed feed, String chatId)
+    public void sendFeedToUser(List<Video> videos, String chatId)
     {
         try
         {
             SendMessage sendMessage = new SendMessage(chatId, ON_GET_TRENDS_TEXT);
             execute(sendMessage);
 
-            for (Video video : feed.getVideos())
+            for (Video video : videos)
             {
                 if (video.getFileId() == null)
                 {
@@ -146,7 +150,8 @@ public class Telegram extends TelegramLongPollingBot
                     sendPhoto(sendPhoto);
                 }
 
-                SendMessage messageWithLink = new SendMessage(chatId, "[" + video.getName() + "](https://www.youtube.com/watch?v=" + video.getId() + ")");
+                SendMessage messageWithLink = new SendMessage(chatId,
+                                                              "[" + video.getName() + "](https://www.youtube.com/watch?v=" + video.getId() + ")");
                 messageWithLink.setParseMode(ParseMode.MARKDOWN);
                 messageWithLink.disableWebPagePreview();
                 execute(messageWithLink);

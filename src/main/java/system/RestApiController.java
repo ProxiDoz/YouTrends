@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import system.access.UserDAO;
+import system.shared.Credentials;
+import system.shared.UserSettingsData;
 
 @RestController
 public class RestApiController

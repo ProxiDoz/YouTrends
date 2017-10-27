@@ -31,18 +31,20 @@ public class BannedChannelDAO
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public List<String> getBannedChannels()
+    public List<String> getBannedChannels(String chatId)
     {
         List<String> bannedChannels = new ArrayList<>();
 
-        String query = "SELECT * FROM BannedChannel";
+        String query = "SELECT name FROM BannedChannel, UserBannedChannel " +
+                       "WHERE UserBannedChannel.channelId = BannedChannel.name AND " +
+                       "UserBannedChannel.userId = ?";
 
         try
         {
             jdbcTemplate.query(query, result ->
             {
                 bannedChannels.add(result.getString("name"));
-            });
+            }, chatId);
 
             return bannedChannels;
         }

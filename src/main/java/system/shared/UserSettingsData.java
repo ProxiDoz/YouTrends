@@ -1,6 +1,8 @@
-package system;
+package system.shared;
 
 import java.util.List;
+
+import system.shared.Credentials;
 
 public class UserSettingsData
 {

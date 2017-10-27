@@ -6,6 +6,8 @@ import javax.imageio.ImageIO;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import system.shared.Feed;
+import system.shared.Video;
 
 
 public class ImageCollector

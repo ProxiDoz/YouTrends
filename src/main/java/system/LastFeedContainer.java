@@ -1,12 +1,17 @@
 package system;
 
+import java.util.List;
+
+import system.shared.Feed;
+import system.shared.Video;
+
 public class LastFeedContainer
 {
     private static Feed feed;
 
-    public static Feed getFeed()
+    public static List<Video> getVideosForUser(String chatId)
     {
-        return feed;
+        return feed.filtration(chatId);
     }
 
     public static void setFeed(Feed feed)
