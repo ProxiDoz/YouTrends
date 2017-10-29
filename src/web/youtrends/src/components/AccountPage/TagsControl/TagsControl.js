@@ -20,7 +20,7 @@ class TagsControl extends Component {
 	}
 
 	componentDidMount () {
-		fetch('/getUserSettingData', {
+		fetch('/api/getUserSettingData', {
 			method: 'POST',
 			headers: {
 				'Accept': 'application/json',
@@ -48,7 +48,7 @@ class TagsControl extends Component {
 
 		this.state.userSettingsData.bannedTags.push(this.state.textNewTag);
 
-		fetch('/setUserSettingData', {
+		fetch('/api/setUserSettingData', {
 			method: 'POST',
 			headers: {
 				'Accept': 'application/json',
@@ -80,7 +80,7 @@ class TagsControl extends Component {
 
 		delete userSettingsData.bannedTags[indexForDelete];
 
-		fetch('/setUserSettingData', {
+		fetch('/api/setUserSettingData', {
 			method: 'POST',
 			headers: {
 				'Accept': 'application/json',

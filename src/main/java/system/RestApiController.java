@@ -14,6 +14,7 @@ import system.shared.UserSettingsData;
 
 @RestController
 @CrossOrigin
+@RequestMapping("/api")
 public class RestApiController
 {
     private static final Logger logger = LogManager.getLogger(RestApiController.class);
