@@ -46,7 +46,7 @@ class SignInPage extends Component {
 	}
 
 	onSubmitClick () {
-		fetch('http://localhost:8080/login', {
+		fetch('/login', {
 			method: 'POST',
 			headers: {
 				'Accept': 'application/json',

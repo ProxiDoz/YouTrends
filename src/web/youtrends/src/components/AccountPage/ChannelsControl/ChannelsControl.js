@@ -20,7 +20,7 @@ class ChannelsControl extends Component {
 	}
 
 	componentDidMount () {
-		fetch('http://localhost:8080/getUserSettingData', {
+		fetch('/getUserSettingData', {
 			method: 'POST',
 			headers: {
 				'Accept': 'application/json',
@@ -48,7 +48,7 @@ class ChannelsControl extends Component {
 
 		this.state.userSettingsData.bannedChannels.push(this.state.textNewTag);
 
-		fetch('http://localhost:8080/setUserSettingData', {
+		fetch('/setUserSettingData', {
 			method: 'POST',
 			headers: {
 				'Accept': 'application/json',
@@ -80,7 +80,7 @@ class ChannelsControl extends Component {
 
 		delete userSettingsData.bannedChannels[indexForDelete];
 
-		fetch('http://localhost:8080/setUserSettingData', {
+		fetch('/setUserSettingData', {
 			method: 'POST',
 			headers: {
 				'Accept': 'application/json',

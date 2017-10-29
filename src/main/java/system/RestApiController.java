@@ -13,6 +13,7 @@ import system.shared.Credentials;
 import system.shared.UserSettingsData;
 
 @RestController
+@CrossOrigin
 public class RestApiController
 {
     private static final Logger logger = LogManager.getLogger(RestApiController.class);
@@ -20,7 +21,6 @@ public class RestApiController
     @Autowired
     private UserDAO userDAO;
 
-    @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(method = RequestMethod.POST, value = "/login", produces = "application/json")
     public boolean login(@RequestBody Credentials credentials)
     {
@@ -36,7 +36,6 @@ public class RestApiController
         return false;
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(method = RequestMethod.POST, value = "/getUserSettingData", produces = "application/json")
     public UserSettingsData getUserSettingsData(@RequestBody Credentials credentials)
     {
@@ -57,7 +56,6 @@ public class RestApiController
         return new UserSettingsData();
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
     @RequestMapping(method = RequestMethod.POST, value = "/setUserSettingData", produces = "application/json")
     public UserSettingsData setUserSettingData(@RequestBody UserSettingsData userSettingsData)
     {
