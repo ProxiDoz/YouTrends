@@ -10,7 +10,7 @@ if [ $1 = "start" ]; then
     # web start
     cd src/web/youtrends
     npm install
-    npm start > weblogs.txt &
+    sudo npm start > weblogs.txt &
 fi
 if [ $1 = "stop" ]; then
     # is not true, but in range this service it's ok
