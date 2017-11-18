@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import system.shared.Feed;
 import system.shared.Video;
 
+// Batya v zdanii! Antyhipe!!!
 public class YouTubeParser implements Callable<Feed>
 {
     private static final Logger logger = LogManager.getLogger(YouTubeParser.class);
