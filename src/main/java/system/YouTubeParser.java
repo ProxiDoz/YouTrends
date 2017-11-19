@@ -78,6 +78,11 @@ public class YouTubeParser implements Callable<Feed>
                                                          .getJSONObject(0)
                                                          .getString("url");
 
+                            if(!imgUrl.matches("http.*"))
+                            {
+                                continue;
+                            }
+
                             Video video = new Video(videoId, name, imgUrl);
                             feed.getVideos().add(video);
 

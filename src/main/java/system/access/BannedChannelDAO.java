@@ -44,7 +44,7 @@ public class BannedChannelDAO
             jdbcTemplate.query(query, result ->
             {
                 bannedChannels.add(result.getString("name"));
-            }, chatId);
+            }, Long.valueOf(chatId));
 
             return bannedChannels;
         }

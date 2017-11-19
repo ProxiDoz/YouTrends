@@ -1,5 +1,6 @@
 package system;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.imageio.ImageIO;
@@ -23,6 +24,10 @@ public class ImageCollector
                 URL url = new URL(video.getImgUrl());
 
                 video.setImage(ImageIO.read(url));
+            }
+            catch (MalformedURLException e)
+            {
+                logger.warn("collect image error on video {}", video.getName());
             }
             catch (Exception e)
             {

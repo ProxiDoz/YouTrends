@@ -39,15 +39,14 @@ public class UserDAO
     {
         String password = RandomStringUtils.random(10, "zvnjfsqw1234567890");
 
-        String query = "SELECT * FROM User WHERE id = ?";
-        String insertQuery = "INSERT INTO User (id, firstName, lastName, userName, language, isBot, password) " +
-                             "VALUES (?, ?, ?, ?, ?, ?, ?)" +
-                             "ON DUPLICATE KEY UPDATE " +
-                             "firstName = VALUES(firstName)," +
-                             "lastName = VALUES(lastName)," +
-                             "userName = VALUES(userName)," +
-                             "language = VALUES(language)," +
-                             "isBot = VALUES(isBot)";
+        String query = "SELECT * FROM Users WHERE id = ?";
+        String insertQuery = "INSERT INTO Users (id, firstName, lastName, userName, language, isBot, password) " +
+                             "VALUES (?, ?, ?, ?, ?, ?, ?) " +
+                             "ON CONFLICT (id) DO UPDATE SET " +
+                             "firstName = ?," +
+                             "lastName =?," +
+                             "userName = ?," +
+                             "language = ?";
 
         try
         {
@@ -60,7 +59,7 @@ public class UserDAO
                 {
                     stringBuilder.append(pas);
                 }
-            }, user.getId().toString());
+            }, user.getId());
 
             if (stringBuilder.length() == 0)
             {
@@ -71,7 +70,13 @@ public class UserDAO
                                     user.getUserName(),
                                     user.getLanguageCode(),
                                     user.getBot(),
-                                    password);
+                                    password,
+
+                                    user.getFirstName(),
+                                    user.getLastName(),
+                                    user.getUserName(),
+                                    user.getLanguageCode()
+                                    );
                 return password;
             }
         }
@@ -85,7 +90,7 @@ public class UserDAO
 
     public void subscribeUser(User user)
     {
-        String updateQuery = "UPDATE User SET isSubscribe = 1 WHERE id = ?";
+        String updateQuery = "UPDATE Users SET isSubscribe = 1 WHERE id = ?";
 
         try
         {
@@ -101,7 +106,7 @@ public class UserDAO
 
     public void unsubscribeUser(User user)
     {
-        String updateQuery = "UPDATE User SET isSubscribe = 0 WHERE id = ?";
+        String updateQuery = "UPDATE Users SET isSubscribe = 0 WHERE id = ?";
 
         try
         {
@@ -119,7 +124,7 @@ public class UserDAO
     {
         List<User> users = new ArrayList<>();
 
-        String query = "SELECT * FROM User WHERE isSubscribe = 1";
+        String query = "SELECT * FROM Users WHERE isSubscribe = 1";
 
         try
         {
@@ -151,7 +156,7 @@ public class UserDAO
 
     public boolean checkCredential(String chatId, String password)
     {
-        String query = "SELECT password FROM User WHERE id = ?";
+        String query = "SELECT password FROM Users WHERE id = ?";
 
         StringBuilder passwordFromDB = new StringBuilder();
 
@@ -322,7 +327,7 @@ public class UserDAO
 
     public String getUserPassword(String chatId)
     {
-        String query = "SELECT password FROM User WHERE id = ?";
+        String query = "SELECT password FROM Users WHERE id = ?";
 
         StringBuilder passwordFromDB = new StringBuilder();
 

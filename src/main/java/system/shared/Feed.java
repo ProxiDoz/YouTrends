@@ -88,13 +88,19 @@ public class Feed
     {
         try
         {
+            if (video.getOld() == null)
+            {
+                logger.warn("Video no have old. {}", video.toString());
+                return false;
+            }
+
             // Если не hours, тогда будет day(s), week но нам это ненадо
             // У нас гораничение 24 часа
             return video.getOld().matches("[0-9]+ hour.*");
         }
         catch (Exception e)
         {
-            logger.error("Error", e);
+            logger.error("Error on filtration by old", e);
         }
 
         return false;

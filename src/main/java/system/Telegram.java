@@ -1,6 +1,8 @@
 package system;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -129,32 +131,40 @@ public class Telegram extends TelegramLongPollingBot
 
             for (Video video : videos)
             {
-                if (video.getFileId() == null)
+                try
                 {
-                    File image = new File("image");
-                    ImageIO.write(video.getImage(), "jpg", image);
+                    if (video.getFileId() == null)
+                    {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        ImageIO.write(video.getImage(), "jpg", baos);
+                        InputStream is = new ByteArrayInputStream(baos.toByteArray());
 
-                    SendPhoto sendPhoto = new SendPhoto();
-                    sendPhoto.setChatId(chatId);
-                    sendPhoto.setNewPhoto(image);
-                    Message response = sendPhoto(sendPhoto);
-                    // Get id from last photo from list
-                    String fileId = response.getPhoto().get(response.getPhoto().size() - 1).getFileId();
-                    video.setFileId(fileId);
+                        SendPhoto sendPhoto = new SendPhoto();
+                        sendPhoto.setChatId(chatId);
+                        sendPhoto.setNewPhoto("name", is);
+                        Message response = sendPhoto(sendPhoto);
+                        // Get id from last photo from list
+                        String fileId = response.getPhoto().get(response.getPhoto().size() - 1).getFileId();
+                        video.setFileId(fileId);
+                    }
+                    else
+                    {
+                        SendPhoto sendPhoto = new SendPhoto();
+                        sendPhoto.setChatId(chatId);
+                        sendPhoto.setPhoto(video.getFileId());
+                        sendPhoto(sendPhoto);
+                    }
+
+                    SendMessage messageWithLink = new SendMessage(chatId,
+                                                                  "[" + video.getName() + "](https://www.youtube.com/watch?v=" + video.getId() + ")");
+                    messageWithLink.setParseMode(ParseMode.MARKDOWN);
+                    messageWithLink.disableWebPagePreview();
+                    execute(messageWithLink);
                 }
-                else
+                catch (Exception e)
                 {
-                    SendPhoto sendPhoto = new SendPhoto();
-                    sendPhoto.setChatId(chatId);
-                    sendPhoto.setPhoto(video.getFileId());
-                    sendPhoto(sendPhoto);
+                    logger.error("Can't send video", e);
                 }
-
-                SendMessage messageWithLink = new SendMessage(chatId,
-                                                              "[" + video.getName() + "](https://www.youtube.com/watch?v=" + video.getId() + ")");
-                messageWithLink.setParseMode(ParseMode.MARKDOWN);
-                messageWithLink.disableWebPagePreview();
-                execute(messageWithLink);
             }
         }
         catch (Exception e)
