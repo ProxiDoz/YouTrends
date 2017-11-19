@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import system.parser.YouTubeParser;
 import system.shared.Feed;
 
 public class FeedParserRunnable implements Runnable

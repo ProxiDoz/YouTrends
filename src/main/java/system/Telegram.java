@@ -31,7 +31,7 @@ public class Telegram extends TelegramLongPollingBot
 
     private static final String ON_SUBSCRIBE_TEXT = "You subscribe on trends.\nYou will get trends on 20:00 (MSK).";
     private static final String ON_UNSUBSCRIBE_TEXT = "You unsubscribed from trends.";
-    private static final String ON_GET_TRENDS_TEXT = "You trends :)";
+    private static final String ON_GET_TRENDS_TEXT = "Your trends :)";
     private static final String ON_UNRECOGNIZED_TEXT = "This command unrecognized";
     private static final String REGISTER_MESSAGE = "You may set your filters on www.youtrends.org\nYour login: %s\nYour password: %s";
 

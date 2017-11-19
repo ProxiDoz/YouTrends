@@ -165,7 +165,7 @@ public class UserDAO
             jdbcTemplate.query(query, result ->
             {
                 passwordFromDB.append(result.getString("password"));
-            }, chatId);
+            }, Long.valueOf(chatId));
 
             if (!passwordFromDB.toString().isEmpty())
             {
@@ -215,15 +215,15 @@ public class UserDAO
             userSettingData.setBannedChannels(userSettingData.getBannedChannels().stream().distinct().collect(Collectors.toList()));
             userSettingData.setBannedTags(userSettingData.getBannedTags().stream().distinct().collect(Collectors.toList()));
 
-            jdbcTemplate.update(deleteChannelsQuery, login);
-            jdbcTemplate.update(deleteTagsQuery, login);
+            jdbcTemplate.update(deleteChannelsQuery, Long.valueOf(login));
+            jdbcTemplate.update(deleteTagsQuery, Long.valueOf(login));
 
             for (String bannedChannel : userSettingData.getBannedChannels())
             {
                 if (bannedChannel != null && !bannedChannel.isEmpty() && bannedChannel.length() < 64 && !bannedChannel.equals(
                         " "))
                 {
-                    jdbcTemplate.update(insertChannelQuery, login, bannedChannel);
+                    jdbcTemplate.update(insertChannelQuery, Long.valueOf(login), bannedChannel);
                 }
             }
 
@@ -231,7 +231,7 @@ public class UserDAO
             {
                 if (bannedTag != null && !bannedTag.isEmpty() && bannedTag.length() < 64 && !bannedTag.equals(" "))
                 {
-                    jdbcTemplate.update(insertTagsQuery, login, bannedTag);
+                    jdbcTemplate.update(insertTagsQuery, Long.valueOf(login), bannedTag);
                 }
             }
 
@@ -256,7 +256,7 @@ public class UserDAO
             jdbcTemplate.query(query, result ->
             {
                 bannedChannels.add(result.getString("channelId"));
-            }, chatId);
+            }, Long.valueOf(chatId));
         }
         catch (Exception e)
         {
@@ -277,7 +277,7 @@ public class UserDAO
             jdbcTemplate.query(query, result ->
             {
                 bannedTags.add(result.getString("tagId"));
-            }, chatId);
+            }, Long.valueOf(chatId));
         }
         catch (Exception e)
         {
@@ -291,8 +291,7 @@ public class UserDAO
     {
         String insertQuery = "INSERT INTO BannedChannel (name) " +
                              "VALUES (?)" +
-                             "ON DUPLICATE KEY UPDATE " +
-                             "name = VALUES(name)";
+                             "ON CONFLICT DO NOTHING";
 
         multipleInsert(insertQuery, bannedChannels);
     }
@@ -301,8 +300,7 @@ public class UserDAO
     {
         String insertQuery = "INSERT INTO BannedTag (name) " +
                              "VALUES (?)" +
-                             "ON DUPLICATE KEY UPDATE " +
-                             "name = VALUES(name)";
+                             "ON CONFLICT DO NOTHING";
 
         multipleInsert(insertQuery, bannedTags);
     }
