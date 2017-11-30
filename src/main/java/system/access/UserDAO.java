@@ -90,41 +90,41 @@ public class UserDAO
 
     public void subscribeUser(User user)
     {
-        String updateQuery = "UPDATE Users SET isSubscribe = 1 WHERE id = ?";
+        String updateQuery = "UPDATE Users SET isSubscribe = TRUE WHERE id = ?";
 
         try
         {
-            jdbcTemplate.update(updateQuery, user.getId().toString());
+            jdbcTemplate.update(updateQuery, user.getId());
         }
         catch (Exception e)
         {
             logger.error("Error", e);
         }
 
-        logger.info("Subscription: " + user.getId().toString());
+        logger.info("Subscription: " + user.getId());
     }
 
     public void unsubscribeUser(User user)
     {
-        String updateQuery = "UPDATE Users SET isSubscribe = 0 WHERE id = ?";
+        String updateQuery = "UPDATE Users SET isSubscribe = FALSE WHERE id = ?";
 
         try
         {
-            jdbcTemplate.update(updateQuery, user.getId().toString());
+            jdbcTemplate.update(updateQuery, user.getId());
         }
         catch (Exception e)
         {
             logger.error("Error", e);
         }
 
-        logger.info("Unsubscribing: " + user.getId().toString());
+        logger.info("Unsubscribing: " + user.getId());
     }
 
     public List<User> getSubscribeUsers()
     {
         List<User> users = new ArrayList<>();
 
-        String query = "SELECT * FROM Users WHERE isSubscribe = 1";
+        String query = "SELECT * FROM Users WHERE isSubscribe = TRUE";
 
         try
         {
@@ -182,6 +182,7 @@ public class UserDAO
 
     public UserSettingsData getUserSettingsData(String chatId)
     {
+        // TODO: move getBannedChannelsByUser and getBannedTagsByUser to bannedChannelsDAO and bannedTagsDAO accordingly
         List<String> bannedChannels = getBannedChannelsByUser(chatId);
         List<String> bannedTags = getBannedTagsByUser(chatId);
 
@@ -334,7 +335,7 @@ public class UserDAO
             jdbcTemplate.query(query, result ->
             {
                 passwordFromDB.append(result.getString("password"));
-            }, chatId);
+            }, Long.valueOf(chatId));
 
             return passwordFromDB.toString();
         }
