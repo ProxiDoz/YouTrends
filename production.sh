@@ -6,14 +6,8 @@ if [ $1 = "start" ]; then
     mvn package
     # start project
     java -jar target/*.jar > logs.txt &
-
-    # web start
-    cd src/web/youtrends
-    npm install
-    sudo npm start > weblogs.txt &
 fi
 if [ $1 = "stop" ]; then
     # is not true, but in range this service it's ok
     killall java
-    killall node
 fi
