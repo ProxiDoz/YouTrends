@@ -88,7 +88,6 @@ public class YouTubeParser implements Callable<Feed>
                             String imgUrl = getFirstImageUrl(videoRenderer.getThumbnail().getThumbnails());
 
                             Video video = new Video(videoId, name, imgUrl);
-                            feed.getVideos().add(video);
 
                             String channelName = videoRenderer.getShortBylineText().getRuns().get(0).getText();
                             video.setChannel(channelName);
@@ -107,6 +106,8 @@ public class YouTubeParser implements Callable<Feed>
                                 String description = videoRenderer.getDescriptionSnippet().getSimpleText();
                                 video.setDescription(description);
                             }
+
+                            feed.getVideos().add(video);
                         }
                         catch (ImageUrlNotExistException e)
                         {
@@ -118,6 +119,10 @@ public class YouTubeParser implements Callable<Feed>
                             // Выводим последнее видео на котором выпал exception,
                             // чтобы потом по логам чекнуть где трабла
                             logger.warn(feed.getVideos().get(feed.getVideos().size() - 1).toString());
+                        }
+                        catch (Exception e)
+                        {
+                            logger.error(e);
                         }
                     }
                 }
@@ -136,9 +141,12 @@ public class YouTubeParser implements Callable<Feed>
     {
         for (ThumbnailItem thumbnailItem : thumbnailItems)
         {
-            if (thumbnailItem.getUrl().matches("http.*"))
+            Pattern pattern = Pattern.compile("(http.*\\.jpg).*");
+            Matcher matcher = pattern.matcher(thumbnailItem.getUrl());
+
+            if (matcher.matches())
             {
-                return thumbnailItem.getUrl();
+                return matcher.group(1);
             }
         }
 

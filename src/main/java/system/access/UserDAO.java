@@ -2,15 +2,12 @@ package system.access;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.jdbc.core.JdbcTemplate;
 import system.shared.User;
-import system.shared.UserSettingsData;
 
 public class UserDAO
 {
@@ -35,33 +32,14 @@ public class UserDAO
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public String registerUserIfNotExist(User user)
+    public void registerUser(User user)
     {
-        String password = RandomStringUtils.random(10, "zvnjfsqw1234567890");
-
-        String query = "SELECT * FROM Users WHERE id = ?";
-        String insertQuery = "INSERT INTO Users (id, firstName, lastName, userName, language, isBot, password) " +
-                             "VALUES (?, ?, ?, ?, ?, ?, ?) " +
-                             "ON CONFLICT (id) DO UPDATE SET " +
-                             "firstName = ?," +
-                             "lastName =?," +
-                             "userName = ?," +
-                             "language = ?";
+        String insertQuery = "INSERT INTO Users (id, firstName, lastName, userName, language, isBot) " +
+                             "VALUES (?, ?, ?, ?, ?, ?)";
 
         try
         {
-            StringBuilder stringBuilder = new StringBuilder();
-
-            jdbcTemplate.query(query, result ->
-            {
-                String pas = result.getString("password");
-                if (pas != null)
-                {
-                    stringBuilder.append(pas);
-                }
-            }, user.getId());
-
-            if (stringBuilder.length() == 0)
+            if (!isUserRegistered(user))
             {
                 jdbcTemplate.update(insertQuery,
                                     user.getId(),
@@ -69,23 +47,20 @@ public class UserDAO
                                     user.getLastName(),
                                     user.getUserName(),
                                     user.getLanguageCode(),
-                                    user.getBot(),
-                                    password,
-
-                                    user.getFirstName(),
-                                    user.getLastName(),
-                                    user.getUserName(),
-                                    user.getLanguageCode()
-                                    );
-                return password;
+                                    user.getBot());
             }
         }
         catch (Exception e)
         {
             logger.error("Error", e);
         }
+    }
 
-        return null;
+    public boolean isUserRegistered(User user)
+    {
+        String sql = "SELECT EXISTS (SELECT * FROM Users WHERE id = ?)";
+
+        return jdbcTemplate.queryForObject(sql, boolean.class, user.getId());
     }
 
     public void subscribeUser(User user)
@@ -154,99 +129,7 @@ public class UserDAO
         return users;
     }
 
-    public boolean checkCredential(String chatId, String password)
-    {
-        String query = "SELECT password FROM Users WHERE id = ?";
-
-        StringBuilder passwordFromDB = new StringBuilder();
-
-        try
-        {
-            jdbcTemplate.query(query, result ->
-            {
-                passwordFromDB.append(result.getString("password"));
-            }, Long.valueOf(chatId));
-
-            if (!passwordFromDB.toString().isEmpty())
-            {
-                return passwordFromDB.toString().equals(password);
-            }
-        }
-        catch (Exception e)
-        {
-            logger.error("Error", e);
-        }
-
-        return false;
-    }
-
-    public UserSettingsData getUserSettingsData(String chatId)
-    {
-        // TODO: move getBannedChannelsByUser and getBannedTagsByUser to bannedChannelsDAO and bannedTagsDAO accordingly
-        List<String> bannedChannels = getBannedChannelsByUser(chatId);
-        List<String> bannedTags = getBannedTagsByUser(chatId);
-
-        UserSettingsData userSettingsData = new UserSettingsData();
-        userSettingsData.setBannedChannels(bannedChannels);
-        userSettingsData.setBannedTags(bannedTags);
-
-        return userSettingsData;
-    }
-
-
-    public UserSettingsData setUserSettingData(UserSettingsData userSettingData)
-    {
-        String login = userSettingData.getCredentials().getLogin();
-
-        insertBannedChannels(userSettingData.getBannedChannels());
-        insertBannedTags(userSettingData.getBannedTags());
-
-        String deleteChannelsQuery = "DELETE FROM UserBannedChannel WHERE userId = ?";
-        String deleteTagsQuery = "DELETE FROM UserBannedTag WHERE userId = ?";
-
-
-        String insertChannelQuery = "INSERT INTO UserBannedChannel (userId, channelId) " +
-                                    "VALUES (?,?)";
-
-        String insertTagsQuery = "INSERT INTO UserBannedTag (userId, tagId) " +
-                                 "VALUES (?,?)";
-
-        try
-        {
-            userSettingData.setBannedChannels(userSettingData.getBannedChannels().stream().distinct().collect(Collectors.toList()));
-            userSettingData.setBannedTags(userSettingData.getBannedTags().stream().distinct().collect(Collectors.toList()));
-
-            jdbcTemplate.update(deleteChannelsQuery, Long.valueOf(login));
-            jdbcTemplate.update(deleteTagsQuery, Long.valueOf(login));
-
-            for (String bannedChannel : userSettingData.getBannedChannels())
-            {
-                if (bannedChannel != null && !bannedChannel.isEmpty() && bannedChannel.length() < 64 && !bannedChannel.equals(
-                        " "))
-                {
-                    jdbcTemplate.update(insertChannelQuery, Long.valueOf(login), bannedChannel);
-                }
-            }
-
-            for (String bannedTag : userSettingData.getBannedTags())
-            {
-                if (bannedTag != null && !bannedTag.isEmpty() && bannedTag.length() < 64 && !bannedTag.equals(" "))
-                {
-                    jdbcTemplate.update(insertTagsQuery, Long.valueOf(login), bannedTag);
-                }
-            }
-
-            return getUserSettingsData(login);
-        }
-        catch (Exception e)
-        {
-            logger.error("Error", e);
-        }
-
-        return null;
-    }
-
-    private List<String> getBannedChannelsByUser(String chatId)
+    private List<String> getBannedChannels(String chatId)
     {
         String query = "SELECT channelId FROM UserBannedChannel WHERE userId = ?";
 
@@ -267,7 +150,7 @@ public class UserDAO
         return bannedChannels;
     }
 
-    private List<String> getBannedTagsByUser(String chatId)
+    private List<String> getBannedTags(String chatId)
     {
         String query = "SELECT tagId FROM UserBannedTag WHERE userId = ?";
 
@@ -286,64 +169,5 @@ public class UserDAO
         }
 
         return bannedTags;
-    }
-
-    private void insertBannedChannels(List<String> bannedChannels)
-    {
-        String insertQuery = "INSERT INTO BannedChannel (name) " +
-                             "VALUES (?)" +
-                             "ON CONFLICT DO NOTHING";
-
-        multipleInsert(insertQuery, bannedChannels);
-    }
-
-    private void insertBannedTags(List<String> bannedTags)
-    {
-        String insertQuery = "INSERT INTO BannedTag (name) " +
-                             "VALUES (?)" +
-                             "ON CONFLICT DO NOTHING";
-
-        multipleInsert(insertQuery, bannedTags);
-    }
-
-    private void multipleInsert(String query, List<String> values)
-    {
-        try
-        {
-            for (String value : values)
-            {
-                if (value != null && !value.isEmpty() && value.length() < 64 && !value.equals(" "))
-                {
-                    jdbcTemplate.update(query, value);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            logger.error("Error", e);
-        }
-    }
-
-    public String getUserPassword(String chatId)
-    {
-        String query = "SELECT password FROM Users WHERE id = ?";
-
-        StringBuilder passwordFromDB = new StringBuilder();
-
-        try
-        {
-            jdbcTemplate.query(query, result ->
-            {
-                passwordFromDB.append(result.getString("password"));
-            }, Long.valueOf(chatId));
-
-            return passwordFromDB.toString();
-        }
-        catch (Exception e)
-        {
-            logger.error("Error", e);
-        }
-
-        return null;
     }
 }

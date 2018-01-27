@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
@@ -15,6 +17,8 @@ import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import system.access.BannedChannelDAO;
+import system.access.BannedTagDAO;
 import system.access.UserDAO;
 import system.shared.Settings;
 import system.shared.User;
@@ -26,14 +30,38 @@ public class Telegram extends TelegramLongPollingBot
 
     private static final String GET_TRENDS_CMD = "/trends";
     private static final String SUBSCRIBE_CMD = "/subscribe";
-    private static final String GETPASS_CMD = "/getpass";
     private static final String UNSUBSCRIBE_CMD = "/unsubscribe";
+    private static final String GET_BANNED_CHANNELS_CMD = "/banned_channels";
+    private static final String GET_BANNED_TAGS_CMD = "/banned_tags";
+    private static final String HELP_CMD = "/help";
+    private static final String ADD_BANNED_TAG_CMD = "addtag";
+    private static final String ADD_BANNED_CHANNEL_CMD = "addch";
+    private static final String REMOVE_BANNED_TAG_CMD = "rmtag";
+    private static final String REMOVE_BANNED_CHANNEL_CMD = "rmch";
 
-    private static final String ON_SUBSCRIBE_TEXT = "You subscribe on trends.\nYou will get trends on 20:00 (MSK).";
-    private static final String ON_UNSUBSCRIBE_TEXT = "You unsubscribed from trends.";
+    private static final String COMMAND_REGEXP = "(\\S*) (.*)";
+
+    private static final String ON_BANNED_CHANNELS_NOT_EXISTS_TEXT = "You don't have banned channels.\n" +
+                                                                     "For add channel in ban list use: addch channel_name";
+    private static final String ON_BANNED_TAGS_NOT_EXISTS_TEXT = "You don't have banned tags.\n" +
+                                                                 "For add tag in ban list use: addtag channel_name";
+    private static final String ON_SUBSCRIBE_TEXT = "You subscribe on trends.\nYou will get trends on 20:00 (MSK)";
+    private static final String ON_UNSUBSCRIBE_TEXT = "You unsubscribed from trends";
     private static final String ON_GET_TRENDS_TEXT = "Your trends :)";
+    private static final String ON_SUCCESS_ADD_TEXT = "successfully added";
+    private static final String ON_SUCCESS_REMOVE_TEXT = "successfully removed";
+    private static final String ON_ALREADY_ADDED_TEXT = " already added";
+    private static final String ON_ALREADY_REMOVED_TEXT = " already removed";
     private static final String ON_UNRECOGNIZED_TEXT = "This command unrecognized";
-    private static final String REGISTER_MESSAGE = "You may set your filters on www.youtrends.org\nYour login: %s\nYour password: %s";
+    private static final String REGISTER_MESSAGE = "Welcome to trends bot. Use /help for see command description";
+    private static final String HELP_TEXT = "You can exclude unwanted videos from the feed by using filtration system.\n" +
+                                            "You can exclude videos by channel name and tags in description\n" +
+                                            "For ban some tags and channels use the next command:\n" +
+                                            "Ban channels: addch channel_name1, channel_name2...\n" +
+                                            "Ban tags: addtag tag1, tag2...\n" +
+                                            "For remove ban use:\n" +
+                                            "Remove ban for channels: rmch channel_name1, channel_name2...\n" +
+                                            "Remove ban for tags: rmtag tag1, tag2...";
 
     private Settings settings;
 
@@ -45,6 +73,8 @@ public class Telegram extends TelegramLongPollingBot
     @Override
     public void onUpdateReceived(Update update)
     {
+        Pattern commandPattern = Pattern.compile(COMMAND_REGEXP);
+
         try
         {
             Message message = update.getMessage();
@@ -54,19 +84,19 @@ public class Telegram extends TelegramLongPollingBot
                 String chatId = message.getChatId().toString();
                 String text = message.getText();
 
+                Matcher commandMatcher = commandPattern.matcher(text.toLowerCase());
+
                 logger.info("From: {} Text: {}", chatId, text);
 
                 User user = new User(message.getFrom());
                 // TODO: add cache (don't use DAO)
-                // Register new user (if him real new)
-                String password = UserDAO.getInstance().registerUserIfNotExist(user);
 
-                // is user new ?
-                if (password != null)
+                if (!UserDAO.getInstance().isUserRegistered(user))
                 {
-                    SendMessage responseMessage = new SendMessage(chatId, String.format(REGISTER_MESSAGE,
-                                                                                        chatId,
-                                                                                        password));
+                    // Register new user (if him real new)
+                    UserDAO.getInstance().registerUser(user);
+                    SendMessage responseMessage = new SendMessage(chatId, REGISTER_MESSAGE);
+                    responseMessage.setParseMode(ParseMode.MARKDOWN);
                     execute(responseMessage);
                 }
 
@@ -88,12 +118,85 @@ public class Telegram extends TelegramLongPollingBot
                 {
                     sendFeedToUser(LastFeedContainer.getVideosForUser(chatId), chatId);
                 }
-                else if (text.equalsIgnoreCase(GETPASS_CMD))
+                else if (commandMatcher.matches())
                 {
-                    String pass = UserDAO.getInstance().getUserPassword(chatId);
+                    String command = commandMatcher.group(1).toLowerCase();
+                    String arguments = commandMatcher.group(2).toLowerCase();
 
-                    SendMessage responseMessage = new SendMessage(chatId, "Your password: " + pass);
+                    String[] args = arguments.split(", ");
+
+                    switch (command)
+                    {
+                        case ADD_BANNED_TAG_CMD:
+                            commandExecutor(user,
+                                            BannedTagDAO.getInstance()::add,
+                                            args,
+                                            ON_SUCCESS_ADD_TEXT,
+                                            ON_ALREADY_ADDED_TEXT);
+                            break;
+                        case ADD_BANNED_CHANNEL_CMD:
+                            commandExecutor(user,
+                                            BannedChannelDAO.getInstance()::add,
+                                            args,
+                                            ON_SUCCESS_ADD_TEXT,
+                                            ON_ALREADY_ADDED_TEXT);
+                            break;
+                        case REMOVE_BANNED_TAG_CMD:
+                            commandExecutor(user,
+                                            BannedTagDAO.getInstance()::remove,
+                                            args,
+                                            ON_SUCCESS_REMOVE_TEXT,
+                                            ON_ALREADY_REMOVED_TEXT);
+                            break;
+                        case REMOVE_BANNED_CHANNEL_CMD:
+                            commandExecutor(user,
+                                            BannedChannelDAO.getInstance()::remove,
+                                            args,
+                                            ON_SUCCESS_REMOVE_TEXT,
+                                            ON_ALREADY_REMOVED_TEXT);
+                            break;
+                        default:
+                            SendMessage responseMessage = new SendMessage(chatId, ON_UNRECOGNIZED_TEXT);
+                            execute(responseMessage);
+                            break;
+                    }
+                }
+                else if (text.equalsIgnoreCase(HELP_CMD))
+                {
+                    SendMessage responseMessage = new SendMessage(chatId, HELP_TEXT);
                     execute(responseMessage);
+                }
+                else if (text.equalsIgnoreCase(GET_BANNED_CHANNELS_CMD))
+                {
+                    List<String> userBannedChannels = BannedChannelDAO.getInstance().getBannedChannels(chatId);
+
+                    if (userBannedChannels.isEmpty())
+                    {
+                        SendMessage responseMessage = new SendMessage(chatId, ON_BANNED_CHANNELS_NOT_EXISTS_TEXT);
+                        execute(responseMessage);
+                    }
+                    else
+                    {
+                        SendMessage responseMessage = new SendMessage(chatId,
+                                                                      "Your banned channels:\n" + userBannedChannels.toString());
+                        execute(responseMessage);
+                    }
+                }
+                else if (text.equalsIgnoreCase(GET_BANNED_TAGS_CMD))
+                {
+                    List<String> userBannedTags = BannedTagDAO.getInstance().getBannedTags(chatId);
+
+                    if (userBannedTags.isEmpty())
+                    {
+                        SendMessage responseMessage = new SendMessage(chatId, ON_BANNED_TAGS_NOT_EXISTS_TEXT);
+                        execute(responseMessage);
+                    }
+                    else
+                    {
+                        SendMessage responseMessage = new SendMessage(chatId,
+                                                                      "Your banned tags:\n" + userBannedTags.toString());
+                        execute(responseMessage);
+                    }
                 }
                 else
                 {
@@ -107,6 +210,36 @@ public class Telegram extends TelegramLongPollingBot
         catch (Exception e)
         {
             logger.error("Error", e);
+        }
+    }
+
+    private void commandExecutor(User user,
+                                 TagAddingFunction tagAddingFunction,
+                                 String[] args,
+                                 String successMessage,
+                                 String errorMessage)
+    {
+        for (String arg : args)
+        {
+            try
+            {
+                boolean isSuccess = tagAddingFunction.execute(user, arg);
+
+                if (isSuccess)
+                {
+                    SendMessage responseMessage = new SendMessage(user.getId().toString(), arg + " " + successMessage);
+                    execute(responseMessage);
+                }
+                else
+                {
+                    SendMessage responseMessage = new SendMessage(user.getId().toString(), arg + " " + errorMessage);
+                    execute(responseMessage);
+                }
+            }
+            catch (Exception e)
+            {
+                logger.error("Command executor error", e);
+            }
         }
     }
 
