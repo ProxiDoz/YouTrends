@@ -19,6 +19,7 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import system.access.BannedChannelDAO;
 import system.access.BannedTagDAO;
+import system.access.MessagesHistoryDAO;
 import system.access.UserDAO;
 import system.shared.Settings;
 import system.shared.User;
@@ -39,7 +40,7 @@ public class Telegram extends TelegramLongPollingBot
     private static final String REMOVE_BANNED_TAG_CMD = "rmtag";
     private static final String REMOVE_BANNED_CHANNEL_CMD = "rmch";
 
-    private static final String COMMAND_REGEXP = "(\\S*) (.*)";
+    private static final String COMMAND_REGEXP = "(\\S+)\\s+(.+)";
 
     private static final String ON_BANNED_CHANNELS_NOT_EXISTS_TEXT = "You don't have banned channels.\n" +
                                                                      "For add channel in ban list use: addch channel_name";
@@ -47,7 +48,6 @@ public class Telegram extends TelegramLongPollingBot
                                                                  "For add tag in ban list use: addtag channel_name";
     private static final String ON_SUBSCRIBE_TEXT = "You subscribe on trends.\nYou will get trends on 20:00 (MSK)";
     private static final String ON_UNSUBSCRIBE_TEXT = "You unsubscribed from trends";
-    private static final String ON_GET_TRENDS_TEXT = "Your trends :)";
     private static final String ON_SUCCESS_ADD_TEXT = "successfully added";
     private static final String ON_SUCCESS_REMOVE_TEXT = "successfully removed";
     private static final String ON_ALREADY_ADDED_TEXT = " already added";
@@ -84,35 +84,27 @@ public class Telegram extends TelegramLongPollingBot
                 String chatId = message.getChatId().toString();
                 String text = message.getText();
 
+                MessagesHistoryDAO.getInstance().insertMessage(chatId, "bot", text);
+
                 Matcher commandMatcher = commandPattern.matcher(text.toLowerCase());
 
-                logger.info("From: {} Text: {}", chatId, text);
-
                 User user = new User(message.getFrom());
-                // TODO: add cache (don't use DAO)
 
                 if (!UserDAO.getInstance().isUserRegistered(user))
                 {
-                    // Register new user (if him real new)
                     UserDAO.getInstance().registerUser(user);
-                    SendMessage responseMessage = new SendMessage(chatId, REGISTER_MESSAGE);
-                    responseMessage.setParseMode(ParseMode.MARKDOWN);
-                    execute(responseMessage);
+                    sendMessage(chatId, REGISTER_MESSAGE);
                 }
 
                 if (text.equalsIgnoreCase(SUBSCRIBE_CMD))
                 {
                     UserDAO.getInstance().subscribeUser(user);
-
-                    SendMessage responseMessage = new SendMessage(chatId, ON_SUBSCRIBE_TEXT);
-                    execute(responseMessage);
+                    sendMessage(chatId, ON_SUBSCRIBE_TEXT);
                 }
                 else if (text.equalsIgnoreCase(UNSUBSCRIBE_CMD))
                 {
                     UserDAO.getInstance().unsubscribeUser(user);
-
-                    SendMessage responseMessage = new SendMessage(chatId, ON_UNSUBSCRIBE_TEXT);
-                    execute(responseMessage);
+                    sendMessage(chatId, ON_UNSUBSCRIBE_TEXT);
                 }
                 else if (text.equalsIgnoreCase(GET_TRENDS_CMD))
                 {
@@ -156,15 +148,13 @@ public class Telegram extends TelegramLongPollingBot
                                             ON_ALREADY_REMOVED_TEXT);
                             break;
                         default:
-                            SendMessage responseMessage = new SendMessage(chatId, ON_UNRECOGNIZED_TEXT);
-                            execute(responseMessage);
+                            sendMessage(chatId, ON_UNRECOGNIZED_TEXT);
                             break;
                     }
                 }
                 else if (text.equalsIgnoreCase(HELP_CMD))
                 {
-                    SendMessage responseMessage = new SendMessage(chatId, HELP_TEXT);
-                    execute(responseMessage);
+                    sendMessage(chatId, HELP_TEXT);
                 }
                 else if (text.equalsIgnoreCase(GET_BANNED_CHANNELS_CMD))
                 {
@@ -172,14 +162,11 @@ public class Telegram extends TelegramLongPollingBot
 
                     if (userBannedChannels.isEmpty())
                     {
-                        SendMessage responseMessage = new SendMessage(chatId, ON_BANNED_CHANNELS_NOT_EXISTS_TEXT);
-                        execute(responseMessage);
+                        sendMessage(chatId, ON_BANNED_CHANNELS_NOT_EXISTS_TEXT);
                     }
                     else
                     {
-                        SendMessage responseMessage = new SendMessage(chatId,
-                                                                      "Your banned channels:\n" + userBannedChannels.toString());
-                        execute(responseMessage);
+                        sendMessage(chatId, "Your banned channels:\n" + userBannedChannels.toString());
                     }
                 }
                 else if (text.equalsIgnoreCase(GET_BANNED_TAGS_CMD))
@@ -188,22 +175,16 @@ public class Telegram extends TelegramLongPollingBot
 
                     if (userBannedTags.isEmpty())
                     {
-                        SendMessage responseMessage = new SendMessage(chatId, ON_BANNED_TAGS_NOT_EXISTS_TEXT);
-                        execute(responseMessage);
+                        sendMessage(chatId, ON_BANNED_TAGS_NOT_EXISTS_TEXT);
                     }
                     else
                     {
-                        SendMessage responseMessage = new SendMessage(chatId,
-                                                                      "Your banned tags:\n" + userBannedTags.toString());
-                        execute(responseMessage);
+                        sendMessage(chatId, "Your banned tags:\n" + userBannedTags.toString());
                     }
                 }
                 else
                 {
-                    logger.info("Unrecognized text from {}: {}", chatId, text);
-
-                    SendMessage responseMessage = new SendMessage(chatId, ON_UNRECOGNIZED_TEXT);
-                    execute(responseMessage);
+                    sendMessage(chatId, ON_UNRECOGNIZED_TEXT);
                 }
             }
         }
@@ -227,13 +208,11 @@ public class Telegram extends TelegramLongPollingBot
 
                 if (isSuccess)
                 {
-                    SendMessage responseMessage = new SendMessage(user.getId().toString(), arg + " " + successMessage);
-                    execute(responseMessage);
+                    sendMessage(user.getId().toString(), arg + " " + successMessage);
                 }
                 else
                 {
-                    SendMessage responseMessage = new SendMessage(user.getId().toString(), arg + " " + errorMessage);
-                    execute(responseMessage);
+                    sendMessage(user.getId().toString(), arg + " " + errorMessage);
                 }
             }
             catch (Exception e)
@@ -259,9 +238,6 @@ public class Telegram extends TelegramLongPollingBot
     {
         try
         {
-            SendMessage sendMessage = new SendMessage(chatId, ON_GET_TRENDS_TEXT);
-            execute(sendMessage);
-
             for (Video video : videos)
             {
                 try
@@ -289,7 +265,7 @@ public class Telegram extends TelegramLongPollingBot
                     }
 
                     SendMessage messageWithLink = new SendMessage(chatId,
-                                                                  "[" + video.getName() + "](https://www.youtube.com/watch?v=" + video.getId() + ")");
+                                                                  video.getChannel() + "\n[" + video.getName() + "](https://www.youtube.com/watch?v=" + video.getId() + ")");
                     messageWithLink.setParseMode(ParseMode.MARKDOWN);
                     messageWithLink.disableWebPagePreview();
                     execute(messageWithLink);
@@ -303,6 +279,20 @@ public class Telegram extends TelegramLongPollingBot
         catch (Exception e)
         {
             logger.error("Error", e);
+        }
+    }
+
+    private void sendMessage(String chatId, String text)
+    {
+        try
+        {
+            SendMessage message = new SendMessage(chatId, text);
+            execute(message);
+            MessagesHistoryDAO.getInstance().insertMessage("bot", chatId, text);
+        }
+        catch (Exception e)
+        {
+            logger.error("Send message trouble", e);
         }
     }
 }

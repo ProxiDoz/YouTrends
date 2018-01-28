@@ -33,3 +33,11 @@ CREATE TABLE UserBannedTag (
   FOREIGN KEY (userId) REFERENCES Users (id),
   FOREIGN KEY (tagId) REFERENCES BannedTag (name)
 );
+
+CREATE TABLE MessagesHistory (
+  id        SERIAL,
+  sender    TEXT,
+  recepient TEXT,
+  message   TEXT,
+  date      TIMESTAMP
+)

@@ -6,6 +6,10 @@
 
     <context:property-placeholder location="jdbc.properties, settings.properties"/>
 
+    <bean id="messagesHistoryDAO" class="system.access.MessagesHistoryDAO">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
     <bean id="bannedTagDAO" class="system.access.BannedTagDAO">
         <property name="dataSource" ref="dataSource"/>
     </bean>

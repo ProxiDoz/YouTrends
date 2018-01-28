@@ -2,18 +2,14 @@ package system.access;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.sql.DataSource;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.jdbc.core.JdbcTemplate;
 import system.shared.User;
 
-public class BannedChannelDAO
+public class BannedChannelDAO extends AbstractDAO
 {
     private static final Logger logger = LogManager.getLogger(BannedChannelDAO.class);
-
-    private JdbcTemplate jdbcTemplate;
 
     private static BannedChannelDAO instance;
 
@@ -25,11 +21,6 @@ public class BannedChannelDAO
     public static BannedChannelDAO getInstance()
     {
         return instance;
-    }
-
-    public void setDataSource(DataSource dataSource)
-    {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     public List<String> getBannedChannels(String userId)

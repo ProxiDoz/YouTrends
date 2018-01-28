@@ -122,7 +122,7 @@ public class YouTubeParser implements Callable<Feed>
                         }
                         catch (Exception e)
                         {
-                            logger.error(e);
+                            logger.error("Item parsing exception", e);
                         }
                     }
                 }
