@@ -241,7 +241,8 @@ public class Telegram extends TelegramLongPollingBot
             {
                 try
                 {
-                    String messageText = video.getChannel() +
+                    String messageText = "channel: " + video.getChannel() +
+                                         "\nname: " + video.getName() +
                                          "\nlink: https://www.youtube.com/watch?v=" + video.getId() +
                                          "\ndescription:\n" + video.getDescription();
 
