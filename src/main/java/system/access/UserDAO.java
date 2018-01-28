@@ -3,6 +3,7 @@ package system.access;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import system.shared.User;
@@ -51,7 +52,23 @@ public class UserDAO extends AbstractDAO
     {
         String sql = "SELECT EXISTS (SELECT * FROM Users WHERE id = ?)";
 
-        return jdbcTemplate.queryForObject(sql, boolean.class, user.getId());
+        try
+        {
+            MutableBoolean isUserExist = new MutableBoolean(false);
+
+            jdbcTemplate.query(sql,
+                               resultSet ->
+                               {
+                                    isUserExist.setValue(resultSet.getBoolean(1));
+                               },
+                               user.getId());
+
+           return isUserExist.getValue();
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
     }
 
     public void subscribeUser(User user)

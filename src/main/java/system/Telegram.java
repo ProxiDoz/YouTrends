@@ -11,7 +11,6 @@ import javax.imageio.ImageIO;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.telegram.telegrambots.api.methods.ParseMode;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.objects.Message;
@@ -46,7 +45,7 @@ public class Telegram extends TelegramLongPollingBot
                                                                      "For add channel in ban list use: addch channel_name";
     private static final String ON_BANNED_TAGS_NOT_EXISTS_TEXT = "You don't have banned tags.\n" +
                                                                  "For add tag in ban list use: addtag channel_name";
-    private static final String ON_SUBSCRIBE_TEXT = "You subscribe on trends.\nYou will get trends on 20:00 (MSK)";
+    private static final String ON_SUBSCRIBE_TEXT = "You subscribe on trends.\nYou will receive trends at 20:00 (MSK)";
     private static final String ON_UNSUBSCRIBE_TEXT = "You unsubscribed from trends";
     private static final String ON_SUCCESS_ADD_TEXT = "successfully added";
     private static final String ON_SUCCESS_REMOVE_TEXT = "successfully removed";
@@ -242,6 +241,10 @@ public class Telegram extends TelegramLongPollingBot
             {
                 try
                 {
+                    String messageText = video.getChannel() +
+                                         "\nlink: https://www.youtube.com/watch?v=" + video.getId() +
+                                         "\ndescription:\n" + video.getDescription();
+
                     if (video.getFileId() == null)
                     {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -251,6 +254,7 @@ public class Telegram extends TelegramLongPollingBot
                         SendPhoto sendPhoto = new SendPhoto();
                         sendPhoto.setChatId(chatId);
                         sendPhoto.setNewPhoto("name", is);
+                        sendPhoto.setCaption(messageText);
                         Message response = sendPhoto(sendPhoto);
                         // Get id from last photo from list
                         String fileId = response.getPhoto().get(response.getPhoto().size() - 1).getFileId();
@@ -261,14 +265,10 @@ public class Telegram extends TelegramLongPollingBot
                         SendPhoto sendPhoto = new SendPhoto();
                         sendPhoto.setChatId(chatId);
                         sendPhoto.setPhoto(video.getFileId());
+                        sendPhoto.setCaption(messageText);
                         sendPhoto(sendPhoto);
                     }
-
-                    SendMessage messageWithLink = new SendMessage(chatId,
-                                                                  video.getChannel() + "\n[" + video.getName() + "](https://www.youtube.com/watch?v=" + video.getId() + ")");
-                    messageWithLink.setParseMode(ParseMode.MARKDOWN);
-                    messageWithLink.disableWebPagePreview();
-                    execute(messageWithLink);
+                    MessagesHistoryDAO.getInstance().insertMessage("bot", chatId, messageText);
                 }
                 catch (Exception e)
                 {
