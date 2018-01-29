@@ -6,11 +6,11 @@
     <img src="https://telegram.org/img/t_logo.png" width="32"/>
   </a>
   <h1>
-    <a href="http://telegram.me/YouTrendsBot")>@YouTrendsBot</a> - ежедневная рассылка трендов YouTube
+    <a href="http://telegram.me/YouTrendsBot")>@YouTrendsBot</a> - daily distribution of YouTube trends
   </h1>
 </div>
-<b>Основные особенности:</b><br>
-- фильтрация по по каналам и тегам в названии;<br>
-- фильтрация по дате выпуска видео (24 часа);<br>
-- сортировка по колличеству просмотров;<br>
-- лимитирование 10 видео<br>
+<b>Main features:</b><br>
+- filtering by channels and tags in the title;<br>
+- only videos not older than 24 hours fall into feed;<br>
+- sort by count of views;<br>
+- feed contains 10 videos (for you after filtration).<br>

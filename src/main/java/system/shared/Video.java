@@ -2,11 +2,12 @@ package system.shared;
 
 import java.awt.image.BufferedImage;
 
+// TODO: lombok
 public class Video
 {
     // id use for creating video URL
     private String id;
-    private String name;
+    private String name; // TODO: rename to 'title'
     private String description;
     private String channel;
     private String imgUrl;

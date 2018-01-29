@@ -9,12 +9,15 @@ import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
+import com.google.common.collect.Lists;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.Update;
+import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import system.access.BannedChannelDAO;
 import system.access.BannedTagDAO;
@@ -241,10 +244,20 @@ public class Telegram extends TelegramLongPollingBot
             {
                 try
                 {
-                    String messageText = "channel: " + video.getChannel() +
-                                         "\nname: " + video.getName() +
-                                         "\nlink: https://www.youtube.com/watch?v=" + video.getId() +
-                                         "\ndescription:\n" + video.getDescription();
+                    SendPhoto sendPhoto = new SendPhoto();
+                    sendPhoto.setChatId(chatId);
+                    sendPhoto.setCaption(video.getName());
+
+                    InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+                    InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+                    inlineKeyboardButton.setText("Watch on " + video.getChannel());
+                    inlineKeyboardButton.setUrl("https://www.youtube.com/watch?v=" + video.getId());
+                    List<InlineKeyboardButton> row = Lists.newArrayList();
+                    row.add( inlineKeyboardButton);
+                    List<List<InlineKeyboardButton>> columns = Lists.newArrayList();
+                    columns.add(row);
+                    inlineKeyboardMarkup.setKeyboard(columns);
+                    sendPhoto.setReplyMarkup(inlineKeyboardMarkup);
 
                     if (video.getFileId() == null)
                     {
@@ -252,10 +265,7 @@ public class Telegram extends TelegramLongPollingBot
                         ImageIO.write(video.getImage(), "jpg", baos);
                         InputStream is = new ByteArrayInputStream(baos.toByteArray());
 
-                        SendPhoto sendPhoto = new SendPhoto();
-                        sendPhoto.setChatId(chatId);
                         sendPhoto.setNewPhoto("name", is);
-                        sendPhoto.setCaption(messageText);
                         Message response = sendPhoto(sendPhoto);
                         // Get id from last photo from list
                         String fileId = response.getPhoto().get(response.getPhoto().size() - 1).getFileId();
@@ -263,13 +273,11 @@ public class Telegram extends TelegramLongPollingBot
                     }
                     else
                     {
-                        SendPhoto sendPhoto = new SendPhoto();
-                        sendPhoto.setChatId(chatId);
                         sendPhoto.setPhoto(video.getFileId());
-                        sendPhoto.setCaption(messageText);
                         sendPhoto(sendPhoto);
                     }
-                    MessagesHistoryDAO.getInstance().insertMessage("bot", chatId, messageText);
+
+                    MessagesHistoryDAO.getInstance().insertMessage("bot", chatId, video.getName());
                 }
                 catch (Exception e)
                 {
