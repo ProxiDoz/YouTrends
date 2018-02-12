@@ -3,6 +3,8 @@ package system.access;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.DataSource;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import system.shared.User;
@@ -11,16 +13,9 @@ public class BannedChannelDAO extends AbstractDAO
 {
     private static final Logger logger = LogManager.getLogger(BannedChannelDAO.class);
 
-    private static BannedChannelDAO instance;
-
-    public BannedChannelDAO()
+    public BannedChannelDAO(DataSource dataSource)
     {
-        instance = this;
-    }
-
-    public static BannedChannelDAO getInstance()
-    {
-        return instance;
+        super(dataSource);
     }
 
     public List<String> getBannedChannels(String userId)

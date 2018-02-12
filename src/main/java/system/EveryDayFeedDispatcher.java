@@ -7,22 +7,26 @@ import system.shared.User;
 
 public class EveryDayFeedDispatcher implements Runnable
 {
+    private UserDAO userDAO;
     private Telegram telegram;
+    private LastFeedContainer lastFeedContainer;
 
-    public EveryDayFeedDispatcher(Telegram telegram)
+    public EveryDayFeedDispatcher(Telegram telegram, UserDAO userDAO, LastFeedContainer lastFeedContainer)
     {
         this.telegram = telegram;
+        this.userDAO = userDAO;
+        this.lastFeedContainer = lastFeedContainer;
     }
 
     @Override
     public void run()
     {
-        List<User> subscribedUsers = UserDAO.getInstance().getSubscribeUsers();
+        List<User> subscribedUsers = userDAO.getSubscribeUsers();
 
-        for (User user: subscribedUsers)
+        for (User user : subscribedUsers)
         {
             String chatId = user.getId().toString();
-            telegram.sendFeedToUser(LastFeedContainer.getVideosForUser(chatId), chatId);
+            telegram.sendFeedToUser(lastFeedContainer.getVideosForUser(chatId), chatId);
         }
     }
 }

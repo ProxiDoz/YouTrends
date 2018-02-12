@@ -1,17 +1,12 @@
 package system.access;
 
+import javax.sql.DataSource;
+
 public class MessagesHistoryDAO extends AbstractDAO
 {
-    private static MessagesHistoryDAO instance;
-
-    public MessagesHistoryDAO()
+    public MessagesHistoryDAO(DataSource dataSource)
     {
-        instance = this;
-    }
-
-    public static MessagesHistoryDAO getInstance()
-    {
-        return instance;
+        super(dataSource);
     }
 
     public void insertMessage(String sender, String recepient, String message)

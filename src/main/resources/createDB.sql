@@ -40,4 +40,16 @@ CREATE TABLE MessagesHistory (
   recepient TEXT,
   message   TEXT,
   date      TIMESTAMP
-)
+);
+
+CREATE TABLE Video (
+  id SERIAL,
+  videoId TEXT,
+  title TEXT,
+  description TEXT,
+  channel TEXT,
+  imgUrl TEXT,
+  old TEXT,
+  viewCount INTEGER,
+  date TIMESTAMP
+);

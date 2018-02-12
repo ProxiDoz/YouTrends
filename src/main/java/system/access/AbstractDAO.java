@@ -8,8 +8,8 @@ public class AbstractDAO
 {
     JdbcTemplate jdbcTemplate;
 
-    public void setDataSource(DataSource dataSource)
+    AbstractDAO(DataSource dataSource)
     {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate = new JdbcTemplate(dataSource);
     }
 }

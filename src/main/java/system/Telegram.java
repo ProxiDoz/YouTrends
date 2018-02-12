@@ -12,6 +12,9 @@ import javax.imageio.ImageIO;
 import com.google.common.collect.Lists;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.telegram.telegrambots.ApiContextInitializer;
+import org.telegram.telegrambots.TelegramBotsApi;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.api.objects.Message;
@@ -19,6 +22,7 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
 import system.access.BannedChannelDAO;
 import system.access.BannedTagDAO;
 import system.access.MessagesHistoryDAO;
@@ -29,6 +33,11 @@ import system.shared.Video;
 
 public class Telegram extends TelegramLongPollingBot
 {
+    static
+    {
+        ApiContextInitializer.init(); // Telegram API (must be init in static context)
+    }
+
     private static final Logger logger = LogManager.getLogger(Telegram.class);
 
     private static final String GET_TRENDS_CMD = "/trends";
@@ -67,9 +76,34 @@ public class Telegram extends TelegramLongPollingBot
 
     private Settings settings;
 
-    Telegram(Settings settings)
+    @Autowired
+    private UserDAO userDAO;
+
+    @Autowired
+    private BannedTagDAO bannedTagDAO;
+
+    @Autowired
+    private BannedChannelDAO bannedChannelDAO;
+
+    @Autowired
+    private MessagesHistoryDAO messagesHistoryDAO;
+
+    @Autowired
+    private LastFeedContainer lastFeedContainer;
+
+    public Telegram(Settings settings)
     {
         this.settings = settings;
+
+        try
+        {
+            TelegramBotsApi botsApi = new TelegramBotsApi();
+            botsApi.registerBot(this);
+        }
+        catch (TelegramApiRequestException e)
+        {
+            logger.error("Error creating bot", e);
+        }
     }
 
     @Override
@@ -86,31 +120,31 @@ public class Telegram extends TelegramLongPollingBot
                 String chatId = message.getChatId().toString();
                 String text = message.getText();
 
-                MessagesHistoryDAO.getInstance().insertMessage(chatId, "bot", text);
+                messagesHistoryDAO.insertMessage(chatId, "bot", text);
 
                 Matcher commandMatcher = commandPattern.matcher(text.toLowerCase());
 
                 User user = new User(message.getFrom());
 
-                if (!UserDAO.getInstance().isUserRegistered(user))
+                if (!userDAO.isUserRegistered(user))
                 {
-                    UserDAO.getInstance().registerUser(user);
+                    userDAO.registerUser(user);
                     sendMessage(chatId, REGISTER_MESSAGE);
                 }
 
                 if (text.equalsIgnoreCase(SUBSCRIBE_CMD))
                 {
-                    UserDAO.getInstance().subscribeUser(user);
+                    userDAO.subscribeUser(user);
                     sendMessage(chatId, ON_SUBSCRIBE_TEXT);
                 }
                 else if (text.equalsIgnoreCase(UNSUBSCRIBE_CMD))
                 {
-                    UserDAO.getInstance().unsubscribeUser(user);
+                    userDAO.unsubscribeUser(user);
                     sendMessage(chatId, ON_UNSUBSCRIBE_TEXT);
                 }
                 else if (text.equalsIgnoreCase(GET_TRENDS_CMD))
                 {
-                    sendFeedToUser(LastFeedContainer.getVideosForUser(chatId), chatId);
+                    sendFeedToUser(lastFeedContainer.getVideosForUser(chatId), chatId);
                 }
                 else if (commandMatcher.matches())
                 {
@@ -123,28 +157,28 @@ public class Telegram extends TelegramLongPollingBot
                     {
                         case ADD_BANNED_TAG_CMD:
                             commandExecutor(user,
-                                            BannedTagDAO.getInstance()::add,
+                                            bannedTagDAO::add,
                                             args,
                                             ON_SUCCESS_ADD_TEXT,
                                             ON_ALREADY_ADDED_TEXT);
                             break;
                         case ADD_BANNED_CHANNEL_CMD:
                             commandExecutor(user,
-                                            BannedChannelDAO.getInstance()::add,
+                                            bannedChannelDAO::add,
                                             args,
                                             ON_SUCCESS_ADD_TEXT,
                                             ON_ALREADY_ADDED_TEXT);
                             break;
                         case REMOVE_BANNED_TAG_CMD:
                             commandExecutor(user,
-                                            BannedTagDAO.getInstance()::remove,
+                                            bannedTagDAO::remove,
                                             args,
                                             ON_SUCCESS_REMOVE_TEXT,
                                             ON_ALREADY_REMOVED_TEXT);
                             break;
                         case REMOVE_BANNED_CHANNEL_CMD:
                             commandExecutor(user,
-                                            BannedChannelDAO.getInstance()::remove,
+                                            bannedChannelDAO::remove,
                                             args,
                                             ON_SUCCESS_REMOVE_TEXT,
                                             ON_ALREADY_REMOVED_TEXT);
@@ -160,7 +194,7 @@ public class Telegram extends TelegramLongPollingBot
                 }
                 else if (text.equalsIgnoreCase(GET_BANNED_CHANNELS_CMD))
                 {
-                    List<String> userBannedChannels = BannedChannelDAO.getInstance().getBannedChannels(chatId);
+                    List<String> userBannedChannels = bannedChannelDAO.getBannedChannels(chatId);
 
                     if (userBannedChannels.isEmpty())
                     {
@@ -173,7 +207,7 @@ public class Telegram extends TelegramLongPollingBot
                 }
                 else if (text.equalsIgnoreCase(GET_BANNED_TAGS_CMD))
                 {
-                    List<String> userBannedTags = BannedTagDAO.getInstance().getBannedTags(chatId);
+                    List<String> userBannedTags = bannedTagDAO.getBannedTags(chatId);
 
                     if (userBannedTags.isEmpty())
                     {
@@ -246,7 +280,7 @@ public class Telegram extends TelegramLongPollingBot
                 {
                     SendPhoto sendPhoto = new SendPhoto();
                     sendPhoto.setChatId(chatId);
-                    sendPhoto.setCaption(video.getName());
+                    sendPhoto.setCaption(video.getTitle());
 
                     InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
                     InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
@@ -277,7 +311,7 @@ public class Telegram extends TelegramLongPollingBot
                         sendPhoto(sendPhoto);
                     }
 
-                    MessagesHistoryDAO.getInstance().insertMessage("bot", chatId, video.getName());
+                    messagesHistoryDAO.insertMessage("bot", chatId, video.getTitle());
                 }
                 catch (Exception e)
                 {
@@ -297,7 +331,7 @@ public class Telegram extends TelegramLongPollingBot
         {
             SendMessage message = new SendMessage(chatId, text);
             execute(message);
-            MessagesHistoryDAO.getInstance().insertMessage("bot", chatId, text);
+            messagesHistoryDAO.insertMessage("bot", chatId, text);
         }
         catch (Exception e)
         {

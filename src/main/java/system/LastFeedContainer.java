@@ -2,20 +2,32 @@ package system;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import system.access.BannedChannelDAO;
+import system.access.BannedTagDAO;
 import system.shared.Feed;
 import system.shared.Video;
 
 public class LastFeedContainer
 {
-    private static Feed feed;
+    private Feed feed;
+    private FeedHandler feedHandler = new FeedHandler();
 
-    public static List<Video> getVideosForUser(String chatId)
+    @Autowired
+    private BannedChannelDAO bannedChannelDAO;
+
+    @Autowired
+    private BannedTagDAO bannedTagDAO;
+
+    public List<Video> getVideosForUser(String userId)
     {
-        return feed.filtration(chatId);
+        return feedHandler.filtration(feed,
+                                      bannedChannelDAO.getBannedChannels(userId),
+                                      bannedTagDAO.getBannedTags(userId));
     }
 
-    public static void setFeed(Feed feed)
+    public void setFeed(Feed feed)
     {
-        LastFeedContainer.feed = feed;
+        this.feed = feed;
     }
 }

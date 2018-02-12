@@ -3,6 +3,8 @@ package system.access;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.DataSource;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,16 +14,9 @@ public class UserDAO extends AbstractDAO
 {
     private static final Logger logger = LogManager.getLogger(UserDAO.class);
 
-    private static UserDAO instance;
-
-    public UserDAO()
+    public UserDAO(DataSource dataSource)
     {
-        instance = this;
-    }
-
-    public static UserDAO getInstance()
-    {
-        return instance;
+        super(dataSource);
     }
 
     public void registerUser(User user)

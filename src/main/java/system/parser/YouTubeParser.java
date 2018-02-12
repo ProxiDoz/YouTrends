@@ -68,62 +68,70 @@ public class YouTubeParser implements Callable<Feed>
 
                 for (Object content : contents)
                 {
-                    JSONObject _content = (JSONObject) content;
-                    JSONObject shelfRenderer = ((JSONArray) _content.query("/itemSectionRenderer/contents")).getJSONObject(
-                            0);
-                    JSONArray items = (JSONArray) shelfRenderer.query(
-                            "/shelfRenderer/content/expandedShelfContentsRenderer/items");
-
-                    for (Object item : items)
+                    try
                     {
-                        try
+                        JSONObject _content = (JSONObject) content;
+                        JSONObject shelfRenderer = ((JSONArray) _content.query("/itemSectionRenderer/contents")).getJSONObject(
+                                0);
+                        JSONArray items = (JSONArray) shelfRenderer.query(
+                                "/shelfRenderer/content/expandedShelfContentsRenderer/items");
+
+                        for (Object item : items)
                         {
-                            YouTubeVideoItem youTubeVideoItem = objectMapper.readValue(item.toString(),
-                                                                                       YouTubeVideoItem.class);
-
-                            VideoRenderer videoRenderer = youTubeVideoItem.getVideoRenderer();
-
-                            String videoId = videoRenderer.getVideoId();
-                            String name = videoRenderer.getTitle().getSimpleText();
-                            String imgUrl = getFirstImageUrl(videoRenderer.getThumbnail().getThumbnails());
-
-                            Video video = new Video(videoId, name, imgUrl);
-
-                            String channelName = videoRenderer.getShortBylineText().getRuns().get(0).getText();
-                            video.setChannel(channelName);
-
-                            String old = videoRenderer.getPublishedTimeText().getSimpleText();
-                            video.setOld(old);
-
-                            String viewCountString = videoRenderer.getViewCountText().getSimpleText();
-
-                            long viewCount = Long.valueOf(CharMatcher.inRange('0', '9').retainFrom(viewCountString));
-                            video.setViewCount(viewCount);
-
-                            // Parse description in end because description often may not exist
-                            if (videoRenderer.getDescriptionSnippet() != null)
+                            try
                             {
-                                String description = videoRenderer.getDescriptionSnippet().getSimpleText();
-                                video.setDescription(description);
-                            }
+                                YouTubeVideoItem youTubeVideoItem = objectMapper.readValue(item.toString(),
+                                                                                           YouTubeVideoItem.class);
 
-                            feed.getVideos().add(video);
+                                VideoRenderer videoRenderer = youTubeVideoItem.getVideoRenderer();
+
+                                String videoId = videoRenderer.getVideoId();
+                                String name = videoRenderer.getTitle().getSimpleText();
+                                String imgUrl = getFirstImageUrl(videoRenderer.getThumbnail().getThumbnails());
+
+                                Video video = new Video(videoId, name, imgUrl);
+
+                                String channelName = videoRenderer.getShortBylineText().getRuns().get(0).getText();
+                                video.setChannel(channelName);
+
+                                String old = videoRenderer.getPublishedTimeText().getSimpleText();
+                                video.setOld(old);
+
+                                String viewCountString = videoRenderer.getViewCountText().getSimpleText();
+
+                                long viewCount = Long.valueOf(CharMatcher.inRange('0',
+                                                                                  '9').retainFrom(viewCountString));
+                                video.setViewCount(viewCount);
+
+                                // Parse description in end because description often may not exist
+                                if (videoRenderer.getDescriptionSnippet() != null)
+                                {
+                                    String description = videoRenderer.getDescriptionSnippet().getSimpleText();
+                                    video.setDescription(description);
+                                }
+
+                                feed.getVideos().add(video);
+                            }
+                            catch (ImageUrlNotExistException e)
+                            {
+                                logger.warn("Image URL not found");
+                            }
+                            catch (JSONException e)
+                            {
+                                logger.error("JSON Error", e);
+                                // Выводим последнее видео на котором выпал exception,
+                                // чтобы потом по логам чекнуть где трабла
+                                logger.warn(feed.getVideos().get(feed.getVideos().size() - 1).toString());
+                            }
+                            catch (Exception e)
+                            {
+                                logger.error("Item parsing exception", e);
+                            }
                         }
-                        catch (ImageUrlNotExistException e)
-                        {
-                            logger.warn("Image URL not found");
-                        }
-                        catch (JSONException e)
-                        {
-                            logger.error("JSON Error", e);
-                            // Выводим последнее видео на котором выпал exception,
-                            // чтобы потом по логам чекнуть где трабла
-                            logger.warn(feed.getVideos().get(feed.getVideos().size() - 1).toString());
-                        }
-                        catch (Exception e)
-                        {
-                            logger.error("Item parsing exception", e);
-                        }
+                    }
+                    catch (Exception e)
+                    {
+                        logger.error("Contents parsing exception", e);
                     }
                 }
             }

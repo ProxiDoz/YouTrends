@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import system.shared.Feed;
 import system.shared.Video;
 
-
 public class ImageCollector
 {
     private static final Logger logger = LogManager.getLogger(ImageCollector.class);
@@ -27,7 +26,7 @@ public class ImageCollector
             }
             catch (MalformedURLException e)
             {
-                logger.warn("collect image error on video {}", video.getName());
+                logger.warn("collect image error on video {}", video.getTitle());
             }
             catch (Exception e)
             {
