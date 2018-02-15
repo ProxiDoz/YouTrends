@@ -110,7 +110,11 @@ public class YouTubeParser implements Callable<Feed>
                                     video.setDescription(description);
                                 }
 
-                                feed.getVideos().add(video);
+                                // Exclude videos with equal videoId. (Example: videos of week)
+                                if (!feed.getVideos().contains(video))
+                                {
+                                    feed.getVideos().add(video);
+                                }
                             }
                             catch (ImageUrlNotExistException e)
                             {

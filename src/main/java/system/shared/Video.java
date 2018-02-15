@@ -27,4 +27,10 @@ public class Video
         this.title = title;
         this.imgUrl = imgUrl;
     }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        return obj instanceof Video && id.equals(((Video) obj).getId());
+    }
 }
