@@ -7,7 +7,8 @@ CREATE TABLE Users (
   password    TEXT,
   isBot       BOOL,
   isBanned    BOOL DEFAULT FALSE,
-  isSubscribe BOOL DEFAULT FALSE
+  isSubscribe BOOL DEFAULT FALSE,
+  regDate     TIMESTAMP DEFAULT now()
 );
 
 CREATE TABLE BannedChannel (
