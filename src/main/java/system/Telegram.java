@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,6 +91,9 @@ public class Telegram extends TelegramLongPollingBot
 
     @Autowired
     private LastFeedContainer lastFeedContainer;
+
+    @Autowired
+    private WordsFrequencyAnalyser wordsFrequencyAnalyser;
 
     public Telegram(Settings settings)
     {
@@ -274,6 +278,18 @@ public class Telegram extends TelegramLongPollingBot
     {
         try
         {
+            List<Entry<String,Integer>> words = wordsFrequencyAnalyser.getPopularWords(5);
+
+            StringBuffer wordsBuffer = new StringBuffer(5);
+
+            for (Entry<String, Integer> word: words)
+            {
+                wordsBuffer.append(" #");
+                wordsBuffer.append(word.getKey());
+            }
+
+            sendMessage(chatId, "Most popular in the last week:\n" + wordsBuffer);
+
             for (Video video : videos)
             {
                 try

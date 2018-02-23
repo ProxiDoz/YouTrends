@@ -1,4 +1,4 @@
-package system.Configurations;
+package system.configurations;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +8,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import system.access.BannedChannelDAO;
 import system.access.BannedTagDAO;
 import system.access.MessagesHistoryDAO;
+import system.access.PopularWordsDAO;
 import system.access.UserDAO;
 import system.access.VideoDAO;
 
@@ -66,5 +67,11 @@ public class JdbcConfiguration
     public VideoDAO videoDAO()
     {
         return new VideoDAO(dataSource());
+    }
+
+    @Bean
+    public PopularWordsDAO popularWordsDAO()
+    {
+        return new PopularWordsDAO(dataSource());
     }
 }

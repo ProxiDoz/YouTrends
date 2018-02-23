@@ -3,6 +3,7 @@ package system.access;
 import java.util.List;
 import javax.sql.DataSource;
 
+import com.google.common.collect.Lists;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import system.shared.Video;
@@ -41,5 +42,28 @@ public class VideoDAO extends AbstractDAO
         {
             logger.error("Insert video error");
         }
+    }
+
+    public List<String> getUniqueTitlesByLastWeek()
+    {
+        String query = "SELECT DISTINCT title FROM Video WHERE date > (now() - INTERVAL '1 week')";
+
+        List<String> titles = Lists.newArrayList();
+
+        try
+        {
+            jdbcTemplate.query(query,
+                               rs ->
+                               {
+                                   titles.add(rs.getString("title"));
+                               }
+                              );
+        }
+        catch (Exception e)
+        {
+            logger.error("Insert video error");
+        }
+
+        return titles;
     }
 }

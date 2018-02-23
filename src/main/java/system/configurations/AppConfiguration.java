@@ -1,4 +1,4 @@
-package system.Configurations;
+package system.configurations;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +8,7 @@ import org.springframework.context.annotation.PropertySource;
 import system.LastFeedContainer;
 import system.Starter;
 import system.Telegram;
+import system.WordsFrequencyAnalyser;
 import system.parser.YouTubeParser;
 import system.shared.Settings;
 
@@ -52,5 +53,11 @@ public class AppConfiguration
     public LastFeedContainer lastFeedContainer()
     {
         return new LastFeedContainer();
+    }
+
+    @Bean
+    public WordsFrequencyAnalyser wordsFrequencyAnalyser()
+    {
+        return new WordsFrequencyAnalyser(jdbcConfiguration.videoDAO(), jdbcConfiguration.popularWordsDAO());
     }
 }

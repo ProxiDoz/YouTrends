@@ -54,3 +54,11 @@ CREATE TABLE Video (
   viewCount INTEGER,
   date TIMESTAMP
 );
+
+CREATE TABLE PopularWords (
+  id SERIAL,
+  words TEXT, -- tags in comma separated format
+  date TIMESTAMP
+);
+
+COMMENT ON COLUMN PopularWords.words IS 'Words in comma separated format';
