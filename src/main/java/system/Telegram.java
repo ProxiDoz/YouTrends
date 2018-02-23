@@ -26,6 +26,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
 import system.access.BannedChannelDAO;
 import system.access.BannedTagDAO;
+import system.access.ChannelAnalytics;
 import system.access.MessagesHistoryDAO;
 import system.access.UserDAO;
 import system.shared.Settings;
@@ -44,6 +45,8 @@ public class Telegram extends TelegramLongPollingBot
     private static final String GET_TRENDS_CMD = "/trends";
     private static final String SUBSCRIBE_CMD = "/subscribe";
     private static final String UNSUBSCRIBE_CMD = "/unsubscribe";
+    private static final String TOP_BY_HOURS_CMD = "/top_by_hours";
+    private static final String TOP_BY_COUNT_CMD = "/top_by_count";
     private static final String GET_BANNED_CHANNELS_CMD = "/banned_channels";
     private static final String GET_BANNED_TAGS_CMD = "/banned_tags";
     private static final String HELP_CMD = "/help";
@@ -88,6 +91,10 @@ public class Telegram extends TelegramLongPollingBot
 
     @Autowired
     private MessagesHistoryDAO messagesHistoryDAO;
+
+
+    @Autowired
+    private ChannelAnalytics channelAnalytics;
 
     @Autowired
     private LastFeedContainer lastFeedContainer;
@@ -149,6 +156,64 @@ public class Telegram extends TelegramLongPollingBot
                 else if (text.equalsIgnoreCase(GET_TRENDS_CMD))
                 {
                     sendFeedToUser(lastFeedContainer.getVideosForUser(chatId), chatId);
+                }
+                else if (text.equalsIgnoreCase(TOP_BY_HOURS_CMD))
+                {
+                    List<Entry<String, Integer>> channels = channelAnalytics.getTopChannelsByHoursInTrends();
+
+                    StringBuilder topChannels = new StringBuilder(512);
+
+                    topChannels.append("Top channels by count hours in trends in last week\n");
+                    topChannels.append("Hours | Channel\n");
+                    topChannels.append("--------------------------\n");
+
+                    for(Entry<String, Integer> channel : channels)
+                    {
+                        topChannels.append(channel.getValue());
+
+                        if (channel.getValue() >= 100)
+                        {
+                            topChannels.append("        | ");
+                        }
+                        else
+                        {
+                            topChannels.append("         | ");
+                        }
+
+                        topChannels.append(channel.getKey());
+                        topChannels.append("\n");
+                    }
+
+                    sendMessage(chatId, topChannels.toString());
+                }
+                else if (text.equalsIgnoreCase(TOP_BY_COUNT_CMD))
+                {
+                    List<Entry<String, Integer>> channels = channelAnalytics.getTopChannelsByCountUniqueVideoInTrends();
+
+                    StringBuilder topChannels = new StringBuilder(512);
+
+                    topChannels.append("Top channels by count unique videos in trends in last week\n");
+                    topChannels.append("Videos | Channel\n");
+                    topChannels.append("--------------------------\n");
+
+                    for(Entry<String, Integer> channel : channels)
+                    {
+                        topChannels.append(channel.getValue());
+
+                        if (channel.getValue() >= 10)
+                        {
+                            topChannels.append("           | ");
+                        }
+                        else
+                        {
+                            topChannels.append("            | ");
+                        }
+
+                        topChannels.append(channel.getKey());
+                        topChannels.append("\n");
+                    }
+
+                    sendMessage(chatId, topChannels.toString());
                 }
                 else if (commandMatcher.matches())
                 {

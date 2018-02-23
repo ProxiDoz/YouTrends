@@ -14,11 +14,11 @@ public class PopularWordsDAO extends AbstractDAO
 
     public void insertPopularWords(List<Entry<String, Integer>> popularWords, Timestamp date)
     {
-        int countWordsForSaving = 100;
+        int countWordsForSaving = 1000;
 
         String query = "INSERT INTO PopularWords (words, date) VALUES (?,?)";
 
-        StringBuffer words = new StringBuffer(countWordsForSaving);
+        StringBuilder words = new StringBuilder(countWordsForSaving);
 
         for (int i = 0; i < countWordsForSaving; i++)
         {

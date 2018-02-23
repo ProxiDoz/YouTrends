@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import system.access.ChannelAnalytics;
 import system.access.BannedChannelDAO;
 import system.access.BannedTagDAO;
 import system.access.MessagesHistoryDAO;
@@ -73,5 +74,11 @@ public class JdbcConfiguration
     public PopularWordsDAO popularWordsDAO()
     {
         return new PopularWordsDAO(dataSource());
+    }
+
+    @Bean
+    public ChannelAnalytics analytics()
+    {
+        return new ChannelAnalytics(dataSource());
     }
 }

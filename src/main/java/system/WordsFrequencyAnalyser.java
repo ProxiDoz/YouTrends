@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import system.access.PopularWordsDAO;
 import system.access.VideoDAO;
+import system.shared.KeyValueEntry;
 
 /**
  * Class provide processing popular word in video titles by last week.
@@ -173,37 +174,6 @@ public class WordsFrequencyAnalyser implements Runnable
         words.sort(new EntryValueComparator());
 
         return words;
-    }
-
-    private class KeyValueEntry <K, V> implements Entry<K, V>
-    {
-        private K key;
-        private V value;
-
-        KeyValueEntry(K key, V value)
-        {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public K getKey()
-        {
-            return key;
-        }
-
-        @Override
-        public V getValue()
-        {
-            return value;
-        }
-
-        @Override
-        public V setValue(V value)
-        {
-            this.value = value;
-            return value;
-        }
     }
 
     /**
