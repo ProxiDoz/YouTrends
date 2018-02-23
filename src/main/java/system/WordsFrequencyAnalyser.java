@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import system.access.PopularWordsDAO;
 import system.access.VideoDAO;
+import system.shared.BannedPopularWord;
 import system.shared.KeyValueEntry;
 
 /**
@@ -147,7 +148,9 @@ public class WordsFrequencyAnalyser implements Runnable
             for (String word : wordsFormTitle)
             {
                 // pass word if it banned or if word is number
-                if (bannedPopularWords.contains(new BannedPopularWord(word)) || StringUtils.isNumericSpace(word))
+                if (bannedPopularWords.contains(new BannedPopularWord(word))
+                    || StringUtils.isNumericSpace(word)
+                    || StringUtils.containsOnly(word, "0123456789."))
                 {
                     continue;
                 }
