@@ -1,8 +1,8 @@
 package system;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -103,20 +103,21 @@ public class WordsFrequencyAnalyser implements Runnable
     {
         List<BannedPopularWord> bannedPopularWordList = Lists.newArrayList();
 
-        String filePath = getClass().getClassLoader().getResource("bannedPopularWords.csv").getPath();
+        InputStream is = getClass().getResourceAsStream("/bannedPopularWords.csv");
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath)))
+        try (InputStreamReader inputStreamReader = new InputStreamReader(is))
         {
-            String bannedPopularWordsString = bufferedReader.readLine();
+            char[] charBuffer = new char[2048];
 
-            if (bannedPopularWordsString != null)
+            inputStreamReader.read(charBuffer, 0, charBuffer.length);
+
+            String bannedPopularWordsString = String.copyValueOf(charBuffer);
+
+            String[] bannedPopularWords = bannedPopularWordsString.split(",");
+
+            for (String bannedPopularWord : bannedPopularWords)
             {
-                String[] bannedPopularWords = bannedPopularWordsString.split(",");
-
-                for (String bannedPopularWord : bannedPopularWords)
-                {
-                    bannedPopularWordList.add(new BannedPopularWord(bannedPopularWord));
-                }
+                bannedPopularWordList.add(new BannedPopularWord(bannedPopularWord));
             }
         }
         catch (IOException e)

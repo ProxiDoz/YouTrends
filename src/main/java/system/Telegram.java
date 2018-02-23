@@ -173,7 +173,7 @@ public class Telegram extends TelegramLongPollingBot
 
                         if (channel.getValue() >= 100)
                         {
-                            topChannels.append("        | ");
+                            topChannels.append("       | ");
                         }
                         else
                         {
@@ -202,7 +202,7 @@ public class Telegram extends TelegramLongPollingBot
 
                         if (channel.getValue() >= 10)
                         {
-                            topChannels.append("           | ");
+                            topChannels.append("          | ");
                         }
                         else
                         {
